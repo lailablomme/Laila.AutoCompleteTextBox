@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Laila.AutoCompleteTextBox</RootNamespace>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <RootNamespace>Laila.AutoCompleteTextBox</RootNamespace>
+    <UseWPF>true</UseWPF>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>Laila.AutoCompleteTextBox</Title>
+    <Version>1.1.2</Version>
+    <Authors>Laïla Blomme</Authors>
+    <Description>A .NET6 WPF enhanced auto-complete TextBox control.</Description>
+    <Copyright>Copyright © 2024 by Laïla Blomme</Copyright>
+    <PackageProjectUrl>https://sourceforge.net/p/laila-autocompletetextbox/code/ref/main/</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Images\ERROR24.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Laila.BalloonTip" Version="1.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\ERROR24.png" />
+  </ItemGroup>
+
+</Project>

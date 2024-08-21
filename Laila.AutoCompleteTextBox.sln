@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34728.123
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Laila.AutoCompleteTextBox", "Laila.AutoCompleteTextBox\Laila.AutoCompleteTextBox.vbproj", "{18D7382B-0A25-4557-B111-48DA76CDBE70}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Laila.AutoCompleteTextBox.SampleApp", "Laila.AutoCompleteTextBox.SampleApp\Laila.AutoCompleteTextBox.SampleApp.vbproj", "{8F501B04-EBCE-49D9-BC36-B0DE8C8BAEAF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{18D7382B-0A25-4557-B111-48DA76CDBE70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18D7382B-0A25-4557-B111-48DA76CDBE70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18D7382B-0A25-4557-B111-48DA76CDBE70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18D7382B-0A25-4557-B111-48DA76CDBE70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F501B04-EBCE-49D9-BC36-B0DE8C8BAEAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F501B04-EBCE-49D9-BC36-B0DE8C8BAEAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F501B04-EBCE-49D9-BC36-B0DE8C8BAEAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F501B04-EBCE-49D9-BC36-B0DE8C8BAEAF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {570C54E4-7C70-4443-B9F4-5233EF6BE85D}
+	EndGlobalSection
+EndGlobal
