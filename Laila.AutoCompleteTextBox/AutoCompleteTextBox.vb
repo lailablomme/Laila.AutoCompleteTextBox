@@ -845,6 +845,7 @@ Public Class AutoCompleteTextBox
                 End If
             ElseIf Not Me.SelectedValue Is Nothing Then
                 Me.SetCurrentValue(SelectedItemProperty, Nothing)
+                Me.SetCurrentValue(SelectedValueProperty, Nothing)
                 Debug.WriteLine(String.Format("Cannot find anything for {0} ({1})", Text, Me.Provider.ToString()))
             End If
         Else
@@ -856,6 +857,7 @@ Public Class AutoCompleteTextBox
             End If
             _isUpdatingText = False
             Me.SetCurrentValue(SelectedItemProperty, Nothing)
+            Me.SetCurrentValue(SelectedValueProperty, Nothing)
             IsDropDownOpen = False
         End If
     End Sub
