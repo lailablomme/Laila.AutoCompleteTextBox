@@ -47,7 +47,7 @@
         </l:AutoCompleteTextBox>
 
         <TextBlock Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,4,0">Selected full path:</TextBlock>
-        <TextBlock Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Text="{Binding FullPath}" />
+        <TextBox Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Text="{Binding FullPath}" />
 
         <TextBlock Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,4,0">Image:</TextBlock>
         <Image Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" Source="{Binding File.Image}" HorizontalAlignment="Left" />
