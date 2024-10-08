@@ -67,6 +67,8 @@ Public Class AutoCompleteTextBox
     Private _isInitiallyLoading As Boolean = True
     Private _isWorking As Boolean = False
     Private _isUpdatingText As Boolean
+    Private _isAfterInput As Boolean
+    Private _isChanged As Boolean
 
     Protected Friend CancelText As String
     Protected Friend CancelValue As Object
@@ -581,18 +583,18 @@ Public Class AutoCompleteTextBox
             End If
 
             Me.CancelText = Me.GetDisplayText(e.NewValue)
-        Else
-            If Not Me.Editor Is Nothing AndAlso Not _isUpdatingText AndAlso Not Me.AllowFreeText Then
-                Try
-                    _isUpdatingText = True
-                    Me.Editor.Text = Nothing
-                    Me.Editor.SelectionStart = 0
-                    Me.Editor.SelectionLength = 0
-                Finally
-                    _isUpdatingText = False
-                End Try
-            End If
+        ElseIf Not Me.Editor Is Nothing AndAlso Not _isUpdatingText AndAlso Not Me.AllowFreeText AndAlso Not _isAfterInput Then
+            Try
+                _isUpdatingText = True
+                Me.Editor.Text = Nothing
+                Me.Editor.SelectionStart = 0
+                Me.Editor.SelectionLength = 0
+            Finally
+                _isUpdatingText = False
+            End Try
         End If
+
+        _isAfterInput = False
 
         If Not Me._isWorking Then
             Try
@@ -688,19 +690,22 @@ Public Class AutoCompleteTextBox
         If TypeOf Me.Provider Is ISuggestionProvider Then
             Dim startListViewItem As ListViewItem = UIHelper.GetParentOfType(Of ListViewItem)(sender)
 
-            If ((e.Key = Key.Enter AndAlso (Me.SelectionAdapter Is Nothing OrElse Me.ItemsSelector.SelectedItem Is Nothing)) _
+            If (e.Key = Key.Enter AndAlso (Me.SelectionAdapter Is Nothing OrElse Me.ItemsSelector.SelectedItem Is Nothing)) _
                     OrElse e.Key = Key.Tab _
                     OrElse (e.Key = Key.Left AndAlso ((Editor.SelectionStart = 0 AndAlso Not startListViewItem Is Nothing) _
                         OrElse (startListViewItem Is Nothing AndAlso Editor.SelectionStart = 0 AndAlso Editor.SelectionLength = 0))) _
                     OrElse (e.Key = Key.Right AndAlso ((Editor.SelectionStart + Editor.SelectionLength = Editor.Text.Length _
                         AndAlso Not startListViewItem Is Nothing) OrElse (startListViewItem Is Nothing _
-                        AndAlso Editor.SelectionStart = Editor.Text.Length AndAlso Editor.SelectionLength = 0)))) Then
+                        AndAlso Editor.SelectionStart = Editor.Text.Length AndAlso Editor.SelectionLength = 0))) Then
                 IsDropDownOpen = False
-                tryGetItemSync(Editor.Text, Nothing)
-                If e.Key = Key.Right Then
-                    Editor.SelectionStart = Editor.Text.Length
-                ElseIf e.Key = Key.Left Then
-                    Editor.SelectionLength = 0
+                If _isChanged Then
+                    _isAfterInput = True
+                    tryGetItemSync(Editor.Text, Nothing)
+                    If e.Key = Key.Right Then
+                        Editor.SelectionStart = Editor.Text.Length
+                    ElseIf e.Key = Key.Left Then
+                        Editor.SelectionLength = 0
+                    End If
                 End If
                 Me.OnAfterSelect()
             ElseIf e.Key = Key.Escape Then
@@ -718,15 +723,17 @@ Public Class AutoCompleteTextBox
         If TypeOf Me.Provider Is ISuggestionProviderAsync Then
             Dim startListViewItem As ListViewItem = UIHelper.GetParentOfType(Of ListViewItem)(sender)
 
-            If ((e.Key = Key.Enter AndAlso (Me.SelectionAdapter Is Nothing OrElse Me.ItemsSelector.SelectedItem Is Nothing)) _
+            If (e.Key = Key.Enter AndAlso (Me.SelectionAdapter Is Nothing OrElse Me.ItemsSelector.SelectedItem Is Nothing)) _
                     OrElse e.Key = Key.Tab _
                     OrElse (e.Key = Key.Left AndAlso ((Editor.SelectionStart = 0 AndAlso Not startListViewItem Is Nothing) _
                         OrElse (startListViewItem Is Nothing AndAlso Editor.SelectionStart = 0 AndAlso Editor.SelectionLength = 0))) _
                     OrElse (e.Key = Key.Right AndAlso ((Editor.SelectionStart + Editor.SelectionLength = Editor.Text.Length _
                         AndAlso Not startListViewItem Is Nothing) OrElse (startListViewItem Is Nothing _
-                        AndAlso Editor.SelectionStart = Editor.Text.Length AndAlso Editor.SelectionLength = 0)))) Then
+                        AndAlso Editor.SelectionStart = Editor.Text.Length AndAlso Editor.SelectionLength = 0))) Then
                 IsDropDownOpen = False
-                Await tryGetItemAsync(Editor.Text,
+                If _isChanged Then
+                    _isAfterInput = True
+                    Await tryGetItemAsync(Editor.Text,
                     Async Function() As Task
                         If e.Key = Key.Right Then
                             Editor.SelectionStart = Editor.Text.Length
@@ -735,6 +742,9 @@ Public Class AutoCompleteTextBox
                         End If
                         Me.OnAfterSelect()
                     End Function)
+                Else
+                    Me.OnAfterSelect()
+                End If
             ElseIf e.Key = Key.Escape Then
                 Me.Cancel()
             ElseIf Me.ShowDropDownButton AndAlso Keyboard.Modifiers.HasFlag(ModifierKeys.Alt) AndAlso Keyboard.IsKeyDown(Key.Down) Then
@@ -757,10 +767,10 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Private Sub tryGetItemSync(text As String, callback As System.Action)
+        Dim list As IEnumerable = Nothing
+        Dim outerEx As Exception = Nothing
         If (Not IsDropDownOpen OrElse SelectionAdapter.SelectorControl.SelectedItem Is Nothing) AndAlso Not String.IsNullOrEmpty(text) Then 'AndAlso Me.SelectedItem Is Nothing /// (text <> _lastGetItemText Or Me.SelectedItem Is Nothing) AndAlso 
             Using New OverrideCursor()
-                Dim list As IEnumerable = Nothing
-                Dim outerEx As Exception = Nothing
                 If Not text.StartsWith("GetById://") AndAlso IsDropDownOpen AndAlso SelectionAdapter.SelectorControl.Items.Count > 0 Then
                     list = SelectionAdapter.SelectorControl.Items
                 Else
@@ -770,19 +780,19 @@ Public Class AutoCompleteTextBox
                         outerEx = ex
                     End Try
                 End If
-                afterTryGetItem(list, outerEx)
             End Using
         End If
+        afterTryGetItem(list, outerEx)
         If Not callback Is Nothing Then
             callback()
         End If
     End Sub
 
     Private Async Function tryGetItemAsync(text As String, callback As Func(Of Task)) As Task
+        Dim list As IEnumerable = Nothing
+        Dim outerEx As Exception = Nothing
         If (Not IsDropDownOpen OrElse SelectionAdapter.SelectorControl.SelectedItem Is Nothing) AndAlso Not String.IsNullOrEmpty(text) Then 'AndAlso Me.SelectedItem Is Nothing /// (text <> _lastGetItemText Or Me.SelectedItem Is Nothing) AndAlso 
             Using New OverrideCursor()
-                Dim list As IEnumerable = Nothing
-                Dim outerEx As Exception = Nothing
                 If Not text.StartsWith("GetById://") AndAlso IsDropDownOpen AndAlso SelectionAdapter.SelectorControl.Items.Count > 0 Then
                     list = SelectionAdapter.SelectorControl.Items
                     System.Windows.Application.Current.Dispatcher.Invoke(
@@ -800,9 +810,9 @@ Public Class AutoCompleteTextBox
                         outerEx = ex
                     End Try
                 End If
-                afterTryGetItem(list, outerEx)
             End Using
         End If
+        afterTryGetItem(list, outerEx)
         If Not callback Is Nothing Then
             Await callback()
         End If
@@ -810,6 +820,8 @@ Public Class AutoCompleteTextBox
 
 
     Private Sub afterTryGetItem(list As IEnumerable, outerEx As Exception)
+        _isChanged = False
+
         If Not outerEx Is Nothing Then
             Me.IsErrorLoading = True
             If Not _isInitiallyLoading Then
@@ -820,7 +832,9 @@ Public Class AutoCompleteTextBox
                         Me.IsBalloonOpen = True
                     End Sub)
             End If
+            Return
         End If
+
         If Not list Is Nothing Then
             Dim enumerator As IEnumerator = list.GetEnumerator()
             If enumerator.MoveNext() Then
@@ -835,57 +849,47 @@ Public Class AutoCompleteTextBox
                         Me.SetCurrentValue(SelectedItemProperty, item)
                     End If
                     IsDropDownOpen = False
+                    Return
                 End If
-            Else
-                If Not Me.SelectedItem Is Nothing Then Me.SetCurrentValue(SelectedItemProperty, Nothing)
-                If String.IsNullOrWhiteSpace(Me.Editor.Text) Then
-                    If Not EqualityComparer(Of Object).Default.Equals(Nothing, Me.SelectedValue) Then
-                        Me.SetCurrentValue(SelectedValueProperty, Nothing)
-                    End If
-                Else
-                    If Not EqualityComparer(Of Object).Default.Equals(Me.InvalidValue, Me.SelectedValue) Then
-                        Me.SetCurrentValue(SelectedValueProperty, Me.InvalidValue)
-                    End If
-                End If
-                Debug.WriteLine(String.Format("Cannot find anything for {0} ({1})", Text, Me.Provider.ToString()))
+            End If
+        End If
+
+        IsDropDownOpen = False
+        If Not Me.SelectedItem Is Nothing Then Me.SetCurrentValue(SelectedItemProperty, Nothing)
+        If String.IsNullOrWhiteSpace(Me.Editor.Text) Then
+            If Not EqualityComparer(Of Object).Default.Equals(Nothing, Me.SelectedValue) Then
+                Me.SetCurrentValue(SelectedValueProperty, Nothing)
             End If
         Else
-            _isUpdatingText = True
-            If Not Editor Is Nothing Then
-                Editor.Text = ""
-                Editor.SelectionStart = 0
-                Editor.SelectionLength = Editor.Text.Length
+            If Not EqualityComparer(Of Object).Default.Equals(Me.InvalidValue, Me.SelectedValue) Then
+                Me.SetCurrentValue(SelectedValueProperty, Me.InvalidValue)
             End If
-            _isUpdatingText = False
-            Me.SetCurrentValue(SelectedItemProperty, Nothing)
-            Me.SetCurrentValue(SelectedValueProperty, Nothing)
-            IsDropDownOpen = False
         End If
+        Debug.WriteLine(String.Format("Cannot find anything for {0} ({1})", Text, Me.Provider.ToString()))
     End Sub
 
     Protected Overridable Sub OnEditorLostFocusSync(ByVal sender As Object, ByVal e As RoutedEventArgs)
         If TypeOf Me.Provider Is ISuggestionProvider Then
-            If (Me.SelectedValue Is Nothing OrElse Me.SelectedValue = Me.InvalidValue) Then
+            If _isChanged Then
                 IsDropDownOpen = False
-                If Not Me.AllowFreeText Then
-                    tryGetItemSync(Me.Editor.Text, Nothing)
-                End If
+                _isAfterInput = True
+                tryGetItemSync(Me.Editor.Text, Nothing)
             End If
         End If
     End Sub
 
     Protected Overridable Async Sub OnEditorLostFocusAsync(ByVal sender As Object, ByVal e As RoutedEventArgs)
         If TypeOf Me.Provider Is ISuggestionProviderAsync Then
-            If (Me.SelectedValue Is Nothing OrElse Me.SelectedValue = Me.InvalidValue) Then
+            If _isChanged Then
                 IsDropDownOpen = False
-                If Not Me.AllowFreeText Then
-                    Await tryGetItemAsync(Me.Editor.Text, Nothing)
-                End If
+                _isAfterInput = True
+                Await tryGetItemAsync(Me.Editor.Text, Nothing)
             End If
         End If
     End Sub
 
     Private Sub OnEditorTextChanged(ByVal sender As Object, ByVal e As TextChangedEventArgs)
+        _isChanged = True
         If Not Me.Text = Me.Editor.Text Then
             Me.SetCurrentValue(TextProperty, Me.Editor.Text)
         End If
@@ -904,11 +908,6 @@ Public Class AutoCompleteTextBox
                     Me.FetchTimer.Start()
                 Else
                     Me.IsDropDownOpen = False
-                    If Not String.IsNullOrWhiteSpace(Me.Editor.Text) Then
-                        Me.SetCurrentValue(SelectedValueProperty, Me.InvalidValue)
-                    ElseIf Not Me.SelectedValue Is Nothing Then
-                        Me.SetCurrentValue(SelectedValueProperty, Nothing)
-                    End If
                 End If
             Finally
                 _isUpdatingText = False
@@ -939,6 +938,7 @@ Public Class AutoCompleteTextBox
 
     Private Sub OnSelectionAdapterCommit(ByRef handled As Boolean)
         If Not ItemsSelector.SelectedItem Is Nothing Then
+            _isChanged = False
             Me.SetCurrentValue(SelectedItemProperty, Me.ItemsSelector.SelectedItem)
             Me.ItemsSelector.SelectedItem = Nothing ' prevent item getting picked next time before the selector even shows
             Me.IsDropDownOpen = False

@@ -35,4 +35,12 @@ Class MainWindow
             RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs("FullPath"))
         End Set
     End Property
+
+    Private Sub DoSetToNothing_Click(sender As Object, e As RoutedEventArgs) Handles DoSetToNothing.Click
+        Me.File = Nothing
+    End Sub
+
+    Private Sub DoSetToWindows_Click(sender As Object, e As RoutedEventArgs) Handles DoSetToWindows.Click
+        Me.FullPath = "c:\windows"
+    End Sub
 End Class

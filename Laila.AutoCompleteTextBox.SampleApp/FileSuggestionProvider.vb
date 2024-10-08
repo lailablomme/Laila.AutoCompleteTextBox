@@ -7,7 +7,7 @@ Public Class FileSuggestionProvider
         If filter = "test" Then
             Throw New Exception("test error")
         ElseIf filter.StartsWith("GetById://") Then
-            Return New FileData() With {.FullPath = filter.Substring("GetById://".Length)}
+            Return {New FileData() With {.FullPath = filter.Substring("GetById://".Length)}}
         Else
             Try
                 Dim path As String = filter

@@ -19,6 +19,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.Resources>
@@ -51,5 +52,10 @@
 
         <TextBlock Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,4,0">Image:</TextBlock>
         <Image Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" Source="{Binding File.Image}" HorizontalAlignment="Left" />
+
+        <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
+            <Button x:Name="DoSetToNothing">Set to Nothing (null)</Button>
+            <Button x:Name="DoSetToWindows" Margin="10,0,0,0">Set to C:\Windows</Button>
+        </StackPanel>
     </Grid>
 </Window>
