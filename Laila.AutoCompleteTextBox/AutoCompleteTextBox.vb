@@ -579,8 +579,10 @@ Public Class AutoCompleteTextBox
                     _isUpdatingText = False
                 End Try
             End If
+
+            Me.CancelText = Me.GetDisplayText(e.NewValue)
         Else
-            If Not Me.Editor Is Nothing AndAlso Not _isUpdatingText Then
+            If Not Me.Editor Is Nothing AndAlso Not _isUpdatingText AndAlso Not Me.AllowFreeText Then
                 Try
                     _isUpdatingText = True
                     Me.Editor.Text = Nothing
@@ -604,6 +606,7 @@ Public Class AutoCompleteTextBox
                             Dim newValue As Object = p.GetValue(e.NewValue, Nothing)
                             If Not EqualityComparer(Of Object).Default.Equals(newValue, Me.SelectedValue) Then
                                 Me.SetCurrentValue(SelectedValueProperty, newValue)
+                                Me.CancelValue = Me.SelectedValue
                             End If
                         End If
                     End If
@@ -645,24 +648,23 @@ Public Class AutoCompleteTextBox
         End If
 
         Me.IsInvalid = Not Me.AllowFreeText AndAlso EqualityComparer(Of Object).Default.Equals(Me.InvalidValue, Me.SelectedValue)
-        If Not Me.SelectedValue Is Nothing AndAlso Not EqualityComparer(Of Object).Default.Equals(Me.InvalidValue, Me.SelectedValue) Then
-            Me.CancelText = Me.GetDisplayText(Me.SelectedItem)
-            Me.CancelValue = Me.SelectedValue
-        End If
     End Sub
 
     Friend Sub OnSelectedValueChanged(value As Object)
         If Not value Is Nothing AndAlso Not value = Me.InvalidValue Then
-            If TypeOf Me.Provider Is ISuggestionProvider Then
-                tryGetItemSync(String.Format("GetById://{0}", Convert.ToString(value)),
-                    Sub()
-                        Me.IsInvalid = Not Me.AllowFreeText AndAlso EqualityComparer(Of Object).Default.Equals(Me.InvalidValue, Me.SelectedValue)
-                    End Sub)
-            ElseIf TypeOf Me.Provider Is ISuggestionProviderAsync Then
-                tryGetItemAsync(String.Format("GetById://{0}", Convert.ToString(value)),
-                    Async Function() As Task
-                        Me.IsInvalid = Not Me.AllowFreeText AndAlso EqualityComparer(Of Object).Default.Equals(Me.InvalidValue, Me.SelectedValue)
-                    End Function)
+            Dim currentValue As Object
+            If Not Me.SelectedItem Is Nothing AndAlso Not String.IsNullOrWhiteSpace(Me.SelectedValuePath) Then
+                Dim p As PropertyInfo = Me.SelectedItem.GetType().GetProperty(Me.SelectedValuePath)
+                If Not p Is Nothing Then
+                    currentValue = p.GetValue(Me.SelectedItem, Nothing)
+                End If
+            End If
+            If Me.SelectedItem Is Nothing OrElse Not EqualityComparer(Of Object).Default.Equals(currentValue, Me.SelectedValue) Then
+                If TypeOf Me.Provider Is ISuggestionProvider Then
+                    tryGetItemSync(String.Format("GetById://{0}", Convert.ToString(value)), Nothing)
+                ElseIf TypeOf Me.Provider Is ISuggestionProviderAsync Then
+                    tryGetItemAsync(String.Format("GetById://{0}", Convert.ToString(value)), Nothing)
+                End If
             End If
         ElseIf (value Is Nothing OrElse value = Me.InvalidValue) AndAlso Not Me.SelectedItem Is Nothing Then
             Me.SetCurrentValue(SelectedItemProperty, Nothing)
@@ -694,9 +696,7 @@ Public Class AutoCompleteTextBox
                         AndAlso Not startListViewItem Is Nothing) OrElse (startListViewItem Is Nothing _
                         AndAlso Editor.SelectionStart = Editor.Text.Length AndAlso Editor.SelectionLength = 0)))) Then
                 IsDropDownOpen = False
-                If Not Me.AllowFreeText Then
-                    tryGetItemSync(Editor.Text, Nothing)
-                End If
+                tryGetItemSync(Editor.Text, Nothing)
                 If e.Key = Key.Right Then
                     Editor.SelectionStart = Editor.Text.Length
                 ElseIf e.Key = Key.Left Then
@@ -726,23 +726,15 @@ Public Class AutoCompleteTextBox
                         AndAlso Not startListViewItem Is Nothing) OrElse (startListViewItem Is Nothing _
                         AndAlso Editor.SelectionStart = Editor.Text.Length AndAlso Editor.SelectionLength = 0)))) Then
                 IsDropDownOpen = False
-                If Not Me.AllowFreeText Then
-                    Await tryGetItemAsync(Editor.Text,
-                        Async Function() As Task
-                            If e.Key = Key.Right Then
-                                Editor.SelectionStart = Editor.Text.Length
-                            ElseIf e.Key = Key.Left Then
-                                Editor.SelectionLength = 0
-                            End If
-                            Me.OnAfterSelect()
-                        End Function)
-                Else
-                    If e.Key = Key.Right Then
-                        Editor.SelectionStart = Editor.Text.Length
-                    ElseIf e.Key = Key.Left Then
-                        Editor.SelectionLength = 0
-                    End If
-                End If
+                Await tryGetItemAsync(Editor.Text,
+                    Async Function() As Task
+                        If e.Key = Key.Right Then
+                            Editor.SelectionStart = Editor.Text.Length
+                        ElseIf e.Key = Key.Left Then
+                            Editor.SelectionLength = 0
+                        End If
+                        Me.OnAfterSelect()
+                    End Function)
             ElseIf e.Key = Key.Escape Then
                 Me.Cancel()
             ElseIf Me.ShowDropDownButton AndAlso Keyboard.Modifiers.HasFlag(ModifierKeys.Alt) AndAlso Keyboard.IsKeyDown(Key.Down) Then
@@ -835,11 +827,9 @@ Public Class AutoCompleteTextBox
                 Dim item As Object = enumerator.Current
                 If Not item Is Nothing Then
                     _isUpdatingText = True
-                    If Not Editor Is Nothing Then
-                        Editor.Text = GetDisplayText(item)
-                        Editor.SelectionStart = 0
-                        Editor.SelectionLength = Editor.Text.Length
-                    End If
+                    Editor.Text = GetDisplayText(item)
+                    Editor.SelectionStart = 0
+                    Editor.SelectionLength = Editor.Text.Length
                     _isUpdatingText = False
                     If Not item.Equals(Me.SelectedItem) Then
                         Me.SetCurrentValue(SelectedItemProperty, item)
@@ -848,8 +838,14 @@ Public Class AutoCompleteTextBox
                 End If
             Else
                 If Not Me.SelectedItem Is Nothing Then Me.SetCurrentValue(SelectedItemProperty, Nothing)
-                If Not EqualityComparer(Of Object).Default.Equals(Me.InvalidValue, Me.SelectedValue) Then
-                    Me.SetCurrentValue(SelectedValueProperty, Me.InvalidValue)
+                If String.IsNullOrWhiteSpace(Me.Editor.Text) Then
+                    If Not EqualityComparer(Of Object).Default.Equals(Nothing, Me.SelectedValue) Then
+                        Me.SetCurrentValue(SelectedValueProperty, Nothing)
+                    End If
+                Else
+                    If Not EqualityComparer(Of Object).Default.Equals(Me.InvalidValue, Me.SelectedValue) Then
+                        Me.SetCurrentValue(SelectedValueProperty, Me.InvalidValue)
+                    End If
                 End If
                 Debug.WriteLine(String.Format("Cannot find anything for {0} ({1})", Text, Me.Provider.ToString()))
             End If
