@@ -886,6 +886,10 @@ Public Class AutoCompleteTextBox
         If Not _isUpdatingText Then
             Try
                 _isUpdatingText = True
+                If Me.Editor.Text Is Nothing OrElse Me.Editor.Text.Length = 0 Then
+                    Me.SetCurrentValue(SelectedItemProperty, Nothing)
+                    Me.SetCurrentValue(SelectedValueProperty, Nothing)
+                End If
                 If Me.FetchTimer Is Nothing Then
                     Me.FetchTimer = New DispatcherTimer()
                     Me.FetchTimer.Interval = TimeSpan.FromMilliseconds(Delay)
