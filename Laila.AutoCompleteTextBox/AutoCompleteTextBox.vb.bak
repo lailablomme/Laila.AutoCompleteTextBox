@@ -771,7 +771,6 @@ Public Class AutoCompleteTextBox
         Dim outerEx As Exception = Nothing
         If (Not IsDropDownOpen OrElse SelectionAdapter.SelectorControl.SelectedItem Is Nothing) AndAlso Not String.IsNullOrEmpty(text) Then 'AndAlso Me.SelectedItem Is Nothing /// (text <> _lastGetItemText Or Me.SelectedItem Is Nothing) AndAlso 
             Using New OverrideCursor()
-                Me.IsBalloonOpen = False
                 If Not text.StartsWith("GetById://") AndAlso IsDropDownOpen AndAlso SelectionAdapter.SelectorControl.Items.Count > 0 Then
                     list = SelectionAdapter.SelectorControl.Items
                 Else
@@ -794,12 +793,19 @@ Public Class AutoCompleteTextBox
         Dim outerEx As Exception = Nothing
         If (Not IsDropDownOpen OrElse SelectionAdapter.SelectorControl.SelectedItem Is Nothing) AndAlso Not String.IsNullOrEmpty(text) Then 'AndAlso Me.SelectedItem Is Nothing /// (text <> _lastGetItemText Or Me.SelectedItem Is Nothing) AndAlso 
             Using New OverrideCursor()
-                Me.IsBalloonOpen = False
                 If Not text.StartsWith("GetById://") AndAlso IsDropDownOpen AndAlso SelectionAdapter.SelectorControl.Items.Count > 0 Then
                     list = SelectionAdapter.SelectorControl.Items
+                    System.Windows.Application.Current.Dispatcher.Invoke(
+                        Sub()
+                            Me.IsBalloonOpen = False
+                        End Sub)
                 Else
                     Try
                         list = Await CType(Me.Provider, ISuggestionProviderAsync).GetSuggestions(text)
+                        System.Windows.Application.Current.Dispatcher.Invoke(
+                            Sub()
+                                Me.IsBalloonOpen = False
+                            End Sub)
                     Catch ex As Exception
                         outerEx = ex
                     End Try
@@ -812,15 +818,19 @@ Public Class AutoCompleteTextBox
         End If
     End Function
 
+
     Private Sub afterTryGetItem(list As IEnumerable, outerEx As Exception)
         _isChanged = False
 
         If Not outerEx Is Nothing Then
             Me.IsErrorLoading = True
             If Not _isInitiallyLoading Then
-                Me.IsDropDownOpen = False
-                Me.ErrorMessage = outerEx.Message & If(Not outerEx.InnerException Is Nothing, vbCrLf & outerEx.InnerException.Message, "")
-                Me.IsBalloonOpen = True
+                System.Windows.Application.Current.Dispatcher.Invoke(
+                    Sub()
+                        Me.IsDropDownOpen = False
+                        Me.ErrorMessage = outerEx.Message & If(Not outerEx.InnerException Is Nothing, vbCrLf & outerEx.InnerException.Message, "")
+                        Me.IsBalloonOpen = True
+                    End Sub)
             End If
             Return
         End If
@@ -964,24 +974,33 @@ Public Class AutoCompleteTextBox
 
         Public Async Sub GetSuggestions(ByVal filter As String)
             If TypeOf _actb.Provider Is ISuggestionProvider Then
-                Dim p As ISuggestionProvider = Nothing
-                _actb.IsLoading = True
-                _actb.IsDropDownOpen = True
-                p = _actb.Provider
-                Dim list As IEnumerable = Nothing
-                Try
-                    Dim f As Func(Of Task) =
-                        Async Function() As Task
-	                        list = p.GetSuggestions(filter)
-                        End Function
-                    Await Task.Run(f)
-                    _actb.IsBalloonOpen = False
-                    Me.DisplaySuggestions(list)
-                Catch ex As Exception
-                    _actb.IsDropDownOpen = False
-                    _actb.ErrorMessage = ex.Message & If(Not ex.InnerException Is Nothing, vbCrLf & ex.InnerException.Message, "")
-                    _actb.IsBalloonOpen = True
-                End Try
+                Dim f As Func(Of Task) =
+                Async Function() As Task
+                    Dim p As ISuggestionProvider = Nothing
+                    System.Windows.Application.Current.Dispatcher.Invoke(
+                        Sub()
+                            _actb.IsLoading = True
+                            _actb.IsDropDownOpen = True
+                            p = _actb.Provider
+                        End Sub)
+                    Dim list As IEnumerable = Nothing
+                    Try
+                        list = p.GetSuggestions(filter)
+                        System.Windows.Application.Current.Dispatcher.Invoke(
+                            Sub()
+                                _actb.IsBalloonOpen = False
+                            End Sub)
+                        Me.DisplaySuggestions(list)
+                    Catch ex As Exception
+                        System.Windows.Application.Current.Dispatcher.Invoke(
+                            Sub()
+                                _actb.IsDropDownOpen = False
+                                _actb.ErrorMessage = ex.Message & If(Not ex.InnerException Is Nothing, vbCrLf & ex.InnerException.Message, "")
+                                _actb.IsBalloonOpen = True
+                            End Sub)
+                    End Try
+                End Function
+                Await Task.Run(f)
             ElseIf TypeOf _actb.Provider Is ISuggestionProviderAsync Then
                 _actb.IsLoading = True
                 _actb.IsDropDownOpen = True
@@ -1000,37 +1019,40 @@ Public Class AutoCompleteTextBox
 
         Private Sub DisplaySuggestions(ByVal suggestions As IEnumerable)
             Using New OverrideCursor()
-                    If _actb.IsKeyboardFocusWithin Then
-                        _actb.ItemsSelector.ItemsSource = suggestions
-                        _actb.IsDropDownOpen = _actb.ItemsSelector.HasItems AndAlso _actb.IsEnabled
-                        _actb.IsLoading = Not _actb.ItemsSelector.HasItems
+                System.Windows.Application.Current.Dispatcher.Invoke(
+                    Sub()
+                        If _actb.IsKeyboardFocusWithin Then
+                            _actb.ItemsSelector.ItemsSource = suggestions
+                            _actb.IsDropDownOpen = _actb.ItemsSelector.HasItems AndAlso _actb.IsEnabled
+                            _actb.IsLoading = Not _actb.ItemsSelector.HasItems
 
-                        If _actb.IsDropDownOpen Then
-                            _actb.CancelText = _actb.Editor.Text
-                            _actb.CancelValue = _actb.SelectedValue
+                            If _actb.IsDropDownOpen Then
+                                _actb.CancelText = _actb.Editor.Text
+                                _actb.CancelValue = _actb.SelectedValue
 
-                            If Not _actb.SelectedValue Is Nothing AndAlso Not _actb.SelectedValue.Equals(_actb.InvalidValue) Then
-                                Dim p As PropertyInfo = suggestions(0).GetType().GetProperty(_actb.SelectedValuePath)
-                                Dim selectedItem As Object = Nothing
-                                For Each sug In suggestions
-                                    If p.GetValue(sug, Nothing) = _actb.SelectedValue Then
-                                        selectedItem = sug
-                                        Exit For
+                                If Not _actb.SelectedValue Is Nothing AndAlso Not _actb.SelectedValue.Equals(_actb.InvalidValue) Then
+                                    Dim p As PropertyInfo = suggestions(0).GetType().GetProperty(_actb.SelectedValuePath)
+                                    Dim selectedItem As Object = Nothing
+                                    For Each sug In suggestions
+                                        If p.GetValue(sug, Nothing) = _actb.SelectedValue Then
+                                            selectedItem = sug
+                                            Exit For
+                                        End If
+                                    Next
+                                    If Not selectedItem Is Nothing Then
+                                        _actb.ItemsSelector.SelectedItem = selectedItem
+                                        CType(_actb.ItemsSelector, ListBox).ScrollIntoView(_actb.ItemsSelector.SelectedItem)
+                                    Else
+                                        CType(_actb.ItemsSelector, ListBox).ScrollIntoView(_actb.ItemsSelector.Items(0))
                                     End If
-                                Next
-                                If Not selectedItem Is Nothing Then
-                                    _actb.ItemsSelector.SelectedItem = selectedItem
-                                    CType(_actb.ItemsSelector, ListBox).ScrollIntoView(_actb.ItemsSelector.SelectedItem)
                                 Else
                                     CType(_actb.ItemsSelector, ListBox).ScrollIntoView(_actb.ItemsSelector.Items(0))
                                 End If
-                            Else
-                                CType(_actb.ItemsSelector, ListBox).ScrollIntoView(_actb.ItemsSelector.Items(0))
                             End If
+                        Else
+                            _actb.IsDropDownOpen = False
                         End If
-                    Else
-                        _actb.IsDropDownOpen = False
-                    End If
+                    End Sub)
             End Using
         End Sub
     End Class
