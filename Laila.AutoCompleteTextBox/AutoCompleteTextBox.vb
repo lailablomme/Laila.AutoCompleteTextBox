@@ -481,8 +481,7 @@ Public Class AutoCompleteTextBox
             AddHandler Me.Editor.PreviewKeyDown, AddressOf OnEditorKeyDownSync
             AddHandler Me.Editor.PreviewKeyDown, AddressOf OnEditorKeyDownAsync
             AddHandler Me.Editor.PreviewKeyUp, AddressOf OnEditorKeyUp
-            AddHandler Me.Editor.PreviewLostKeyboardFocus, AddressOf OnEditorLostFocusSync
-            AddHandler Me.Editor.PreviewLostKeyboardFocus, AddressOf OnEditorLostFocusAsync
+            AddHandler Me.Editor.PreviewLostKeyboardFocus, AddressOf OnEditorLostFocus
 
             _isUpdatingText = True
             Me.Editor.Text = Me.Text
@@ -813,6 +812,7 @@ Public Class AutoCompleteTextBox
     End Function
 
     Private Sub afterTryGetItem(list As IEnumerable, outerEx As Exception)
+        _isAfterInput = False
         _isChanged = False
 
         If Not outerEx Is Nothing Then
@@ -831,17 +831,19 @@ Public Class AutoCompleteTextBox
                 Dim item As Object = enumerator.Current
                 If Not item Is Nothing Then
                     _isUpdatingText = True
-                    Editor.Text = GetDisplayText(item)
-                    Editor.SelectionStart = 0
-                    Editor.SelectionLength = Editor.Text.Length
-                    _isUpdatingText = False
-                    If Not item.Equals(Me.SelectedItem) Then
-                        Me.SetCurrentValue(SelectedItemProperty, item)
+                    If Not Me.Editor Is Nothing Then
+                        Editor.Text = GetDisplayText(item)
+                        Editor.SelectionStart = 0
+                        Editor.SelectionLength = Editor.Text.Length
                     End If
-                    IsDropDownOpen = False
-                    Return
+                    _isUpdatingText = False
+                        If Not item.Equals(Me.SelectedItem) Then
+                            Me.SetCurrentValue(SelectedItemProperty, item)
+                        End If
+                        IsDropDownOpen = False
+                        Return
+                    End If
                 End If
-            End If
         End If
 
         IsDropDownOpen = False
@@ -858,22 +860,28 @@ Public Class AutoCompleteTextBox
         Debug.WriteLine(String.Format("Cannot find anything for {0} ({1})", Text, Me.Provider.ToString()))
     End Sub
 
-    Protected Overridable Sub OnEditorLostFocusSync(ByVal sender As Object, ByVal e As RoutedEventArgs)
+    Private Sub OnEditorLostFocus(ByVal sender As Object, ByVal e As RoutedEventArgs)
         If TypeOf Me.Provider Is ISuggestionProvider Then
             If _isChanged Then
                 IsDropDownOpen = False
                 _isAfterInput = True
                 tryGetItemSync(Me.Editor.Text, Nothing)
             End If
-        End If
-    End Sub
-
-    Protected Overridable Async Sub OnEditorLostFocusAsync(ByVal sender As Object, ByVal e As RoutedEventArgs)
-        If TypeOf Me.Provider Is ISuggestionProviderAsync Then
+        ElseIf TypeOf Me.Provider Is ISuggestionProviderAsync Then
             If _isChanged Then
                 IsDropDownOpen = False
                 _isAfterInput = True
-                Await tryGetItemAsync(Me.Editor.Text, Nothing)
+                Dim isReady As Boolean
+                Application.Current.Dispatcher.Invoke(
+                        Async Sub()
+                            Await tryGetItemAsync(Me.Editor.Text, Nothing)
+                            isReady = True
+                        End Sub)
+                While Not isReady
+                    Application.Current.Dispatcher.Invoke(
+                            Sub()
+                            End Sub, Threading.DispatcherPriority.ContextIdle)
+                End While
             End If
         End If
     End Sub
@@ -936,6 +944,7 @@ Public Class AutoCompleteTextBox
             Me.SetCurrentValue(SelectedItemProperty, Me.ItemsSelector.SelectedItem)
             Me.ItemsSelector.SelectedItem = Nothing ' prevent item getting picked next time before the selector even shows
             Me.IsDropDownOpen = False
+            _isAfterInput = False
             Me.OnAfterSelect()
         End If
     End Sub
