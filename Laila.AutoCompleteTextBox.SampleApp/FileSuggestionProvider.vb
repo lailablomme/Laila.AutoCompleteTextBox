@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Threading
 
 Public Class FileSuggestionProvider
     Implements ISuggestionProvider
@@ -9,6 +10,8 @@ Public Class FileSuggestionProvider
         ElseIf filter.StartsWith("GetById://") Then
             Return {New FileData() With {.FullPath = filter.Substring("GetById://".Length)}}
         Else
+            If String.IsNullOrWhiteSpace(filter) Then filter = "c:\windows\"
+
             Try
                 Dim path As String = filter
                 Dim pathWithoutFileName As String

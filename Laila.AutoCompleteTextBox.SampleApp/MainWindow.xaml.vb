@@ -37,10 +37,10 @@ Class MainWindow
     End Property
 
     Private Sub DoSetToNothing_Click(sender As Object, e As RoutedEventArgs) Handles DoSetToNothing.Click
-        Me.File = Nothing
+        Me.FullPath = Nothing
     End Sub
 
     Private Sub DoSetToWindows_Click(sender As Object, e As RoutedEventArgs) Handles DoSetToWindows.Click
-        Me.FullPath = "c:\windows"
+        Me.FullPath = "c:\Windows\"
     End Sub
 End Class
