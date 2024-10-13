@@ -32,7 +32,6 @@
     </Style>
 
     <Style TargetType="{x:Type local:AutoCompleteTextBox}">
-        <Setter Property="Focusable" Value="False" />
         <Setter Property="Background" Value="White" />
         <Setter Property="Foreground" Value="Black" />
         <Setter Property="IsTabStop" Value="True" />

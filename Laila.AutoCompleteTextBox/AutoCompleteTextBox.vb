@@ -81,6 +81,8 @@ Public Class AutoCompleteTextBox
                 End If
             End Sub
 
+        MyBase.Focusable = False
+
         AddHandler Me.IsEnabledChanged,
             Sub(s As Object, e As DependencyPropertyChangedEventArgs)
                 If Not Me.IsEnabled AndAlso Me.IsDropDownOpen Then
@@ -169,7 +171,10 @@ Public Class AutoCompleteTextBox
                         If TypeOf Me.Provider Is ISuggestionProvider Then
                             tryGetItemSync(Me.Text)
                         ElseIf TypeOf Me.Provider Is ISuggestionProviderAsync Then
-                            tryGetItemAsync(Me.Text)
+                            Me.WaitSyncForAsync(
+                                Async Function() As Task
+                                    Await tryGetItemAsync(Me.Text)
+                                End Function)
                         End If
                         _isSettingValueAfterUserInput = False
                     End If
@@ -187,7 +192,10 @@ Public Class AutoCompleteTextBox
             If TypeOf Me.Provider Is ISuggestionProvider Then
                 tryGetItemSync(Me.Text)
             ElseIf TypeOf Me.Provider Is ISuggestionProviderAsync Then
-                tryGetItemAsync(Me.Text)
+                Me.WaitSyncForAsync(
+                    Async Function() As Task
+                        Await tryGetItemAsync(Me.Text)
+                    End Function)
             End If
             _isSettingValueAfterUserInput = False
         End If
@@ -210,9 +218,6 @@ Public Class AutoCompleteTextBox
         If Me.IsEnabled Then
             Dim list As IEnumerable
 
-            ' wait for dropdown to open
-            Await Task.Delay(250)
-
             Try
                 If cancellationToken.IsCancellationRequested Then Return
 
@@ -233,11 +238,14 @@ Public Class AutoCompleteTextBox
                 If cancellationToken.IsCancellationRequested Then Return
 
                 If Me.IsKeyboardFocusWithin AndAlso Not list Is Nothing AndAlso list.GetEnumerator().MoveNext() Then
-                    Debug.WriteLine("loading list")
+                    If New List(Of Object)(list).Count > 350 Then
+                        ' wait for dropdown to open
+                        Await Task.Delay(250)
+                    End If
+
                     Me.PART_ListBox.ItemsSource = list
                     _cancelSelectText = Me.Text
                     BindingOperations.ClearBinding(Me.PART_TextBox, TextBox.TextProperty)
-                    Me.IsLoadingSuggestions = False
 
                     If Not Me.SelectedValue Is Nothing AndAlso Not getIsSelectedValueInvalid() Then
                         Me.PART_ListBox.SelectedItem = list.Cast(Of Object).FirstOrDefault(Function(i) _
@@ -246,6 +254,8 @@ Public Class AutoCompleteTextBox
                             Me.PART_ListBox.ScrollIntoView(Me.PART_ListBox.SelectedItem)
                         End If
                     End If
+
+                    Me.IsLoadingSuggestions = False
                 Else
                     Me.IsDropDownOpen = False
                     Me.IsLoadingSuggestions = False
@@ -509,6 +519,20 @@ Public Class AutoCompleteTextBox
         End If
     End Function
 
+    Private Sub WaitSyncForAsync(func As Func(Of Task))
+        Dim result As Boolean
+        Application.Current.Dispatcher.Invoke(
+            Async Function() As Task
+                Await func()
+                result = True
+            End Function)
+        While Not result
+            Application.Current.Dispatcher.Invoke(
+                Sub()
+                End Sub, Threading.DispatcherPriority.ContextIdle)
+        End While
+    End Sub
+
     Protected Friend Overridable Sub OnSelectedItemChanged()
         ' hide tooltip?
         If Me.SelectedItem Is Nothing AndAlso Not Me.ToolTip Is Nothing AndAlso TypeOf (Me.ToolTip) Is ToolTip Then
@@ -577,19 +601,14 @@ Public Class AutoCompleteTextBox
         act.OnProviderChanged()
     End Sub
 
-    Private Sub WaitSyncForAsync(func As Func(Of Task))
-        Dim result As Boolean
-        Application.Current.Dispatcher.Invoke(
-            Async Function() As Task
-                Await func()
-                result = True
-            End Function)
-        While Not result
-            Application.Current.Dispatcher.Invoke(
-                Sub()
-                End Sub, Threading.DispatcherPriority.ContextIdle)
-        End While
-    End Sub
+    Public Overloads Property Focusable As Boolean
+        Get
+            Return Me.PART_TextBox.Focusable
+        End Get
+        Set(value As Boolean)
+            Me.PART_TextBox.Focusable = value
+        End Set
+    End Property
 
     Public Property AllowFreeText As Boolean
         Get
