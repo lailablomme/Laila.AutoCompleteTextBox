@@ -43,4 +43,8 @@ Class MainWindow
     Private Sub DoSetToWindows_Click(sender As Object, e As RoutedEventArgs) Handles DoSetToWindows.Click
         Me.FullPath = "c:\Windows\"
     End Sub
+
+    Private Sub DoSetFocus_Click(sender As Object, e As RoutedEventArgs) Handles DoSetFocus.Click
+        actbFile.Focus()
+    End Sub
 End Class

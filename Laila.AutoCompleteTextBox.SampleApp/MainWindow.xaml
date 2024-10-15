@@ -57,6 +57,7 @@
         <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
             <Button x:Name="DoSetToNothing">Set to Nothing (null)</Button>
             <Button x:Name="DoSetToWindows" Margin="10,0,0,0">Set to C:\Windows</Button>
+            <Button x:Name="DoSetFocus" Margin="10,0,0,0">Focus</Button>
         </StackPanel>
     </Grid>
 </Window>

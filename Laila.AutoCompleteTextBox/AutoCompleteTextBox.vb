@@ -23,7 +23,6 @@ Public Class AutoCompleteTextBox
     Public Shared ReadOnly IsDropDownOpenProperty As DependencyProperty = DependencyProperty.Register("IsDropDownOpen", GetType(Boolean), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(False, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
     Public Shared ReadOnly IsBalloonOpenProperty As DependencyProperty = DependencyProperty.Register("IsBalloonOpen", GetType(Boolean), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(False, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
     Public Shared ReadOnly IsReadOnlyProperty As DependencyProperty = DependencyProperty.Register("IsReadOnly", GetType(Boolean), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(False, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
-    Public Shared Shadows ReadOnly IsTabStopProperty As DependencyProperty = DependencyProperty.Register("IsTabStop", GetType(Boolean), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(True, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
     Public Shared ReadOnly IsToolTipEnabledProperty As DependencyProperty = DependencyProperty.Register("IsToolTipEnabled", GetType(Boolean), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(True, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
     Public Shared ReadOnly ItemTemplateProperty As DependencyProperty = DependencyProperty.Register("ItemTemplate", GetType(DataTemplate), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(Nothing, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
     Public Shared ReadOnly LoadingContentProperty As DependencyProperty = DependencyProperty.Register("LoadingContent", GetType(Object), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(Nothing, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
@@ -43,6 +42,7 @@ Public Class AutoCompleteTextBox
     Protected _isSettingValueAfterUserInput As Boolean
     Protected _isSettingTextInternally As Boolean
     Protected _isGettingItem As Boolean
+    Private _isTraversingBackwards As Boolean
     Private _timer As Timer
     Private _cancelValue As Object
     Private _cancelText As String
@@ -81,7 +81,15 @@ Public Class AutoCompleteTextBox
                 End If
             End Sub
 
-        MyBase.Focusable = False
+        AddHandler Me.GotFocus,
+            Sub(s As Object, e As RoutedEventArgs)
+                If _isTraversingBackwards Then
+                    _isTraversingBackwards = False
+                    CType(Keyboard.FocusedElement, FrameworkElement).MoveFocus(New TraversalRequest(FocusNavigationDirection.Previous))
+                Else
+                    Me.PART_TextBox.Focus()
+                End If
+            End Sub
 
         AddHandler Me.IsEnabledChanged,
             Sub(s As Object, e As DependencyPropertyChangedEventArgs)
@@ -199,6 +207,12 @@ Public Class AutoCompleteTextBox
             End If
             _isSettingValueAfterUserInput = False
         End If
+
+        If Me.Equals(Keyboard.FocusedElement) Then
+            _isTraversingBackwards = True
+        End If
+
+        Me.OnLostFocus(New RoutedEventArgs(Control.LostFocusEvent, Me))
     End Sub
 
     Private Async Function displaySuggestions(text As String) As Task
@@ -601,15 +615,6 @@ Public Class AutoCompleteTextBox
         act.OnProviderChanged()
     End Sub
 
-    Public Overloads Property Focusable As Boolean
-        Get
-            Return Me.PART_TextBox.Focusable
-        End Get
-        Set(value As Boolean)
-            Me.PART_TextBox.Focusable = value
-        End Set
-    End Property
-
     Public Property AllowFreeText As Boolean
         Get
             Return GetValue(AllowFreeTextProperty)
@@ -742,6 +747,15 @@ Public Class AutoCompleteTextBox
         End Get
         Set(value As Boolean)
             SetValue(IsDirtyProperty, value)
+        End Set
+    End Property
+
+    Public Overloads Property Focusable As Boolean
+        Get
+            Return GetValue(FocusableProperty)
+        End Get
+        Set(value As Boolean)
+            SetValue(FocusableProperty, value)
         End Set
     End Property
 

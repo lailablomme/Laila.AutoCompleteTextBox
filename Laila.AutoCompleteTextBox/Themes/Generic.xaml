@@ -87,9 +87,10 @@
                                     <TextBox Grid.Column="1" x:Name="PART_TextBox" HorizontalAlignment="Stretch" VerticalAlignment="Center" 
                                              BorderThickness="0" Background="Transparent" Padding="0,1,0,1"
                                              Foreground="{TemplateBinding Foreground}" Style="{x:Null}"  
-                                             IsTabStop="{Binding IsTabStop, RelativeSource={RelativeSource Mode=TemplatedParent}}"
-                                             IsReadOnly="{Binding IsReadOnly, RelativeSource={RelativeSource Mode=TemplatedParent}}"
-                                             MaxLength="{Binding MaxLength, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                                             IsTabStop="{Binding IsTabStop, RelativeSource={RelativeSource Mode=TemplatedParent}, Mode=TwoWay}"
+                                             IsReadOnly="{Binding IsReadOnly, RelativeSource={RelativeSource Mode=TemplatedParent}, Mode=TwoWay}"
+                                             MaxLength="{Binding MaxLength, RelativeSource={RelativeSource Mode=TemplatedParent}, Mode=TwoWay}"
+                                             Focusable="{Binding Focusable, RelativeSource={RelativeSource Mode=TemplatedParent}, Mode=TwoWay}"
                                              Text="{Binding Text, RelativeSource={RelativeSource Mode=TemplatedParent}, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBlock Grid.Column="1" x:Name="PART_Watermark" Text="{TemplateBinding Watermark}" IsHitTestVisible="False"
                                            VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False" Foreground="Gray" Margin="3,0">
