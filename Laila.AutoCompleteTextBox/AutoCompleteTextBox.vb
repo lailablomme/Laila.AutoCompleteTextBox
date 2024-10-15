@@ -210,9 +210,9 @@ Public Class AutoCompleteTextBox
 
         If Me.Equals(Keyboard.FocusedElement) Then
             _isTraversingBackwards = True
+        Else
+            Me.OnLostFocus(New RoutedEventArgs(Control.LostFocusEvent, Me))
         End If
-
-        Me.OnLostFocus(New RoutedEventArgs(Control.LostFocusEvent, Me))
     End Sub
 
     Private Async Function displaySuggestions(text As String) As Task
