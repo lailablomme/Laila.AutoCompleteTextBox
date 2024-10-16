@@ -42,6 +42,7 @@ Public Class AutoCompleteTextBox
     Protected _isSettingValueAfterUserInput As Boolean
     Protected _isSettingTextInternally As Boolean
     Protected _isGettingItem As Boolean
+    Protected _isRedirectingFocus As Boolean
     Private _isTraversingBackwards As Boolean
     Private _timer As Timer
     Private _cancelValue As Object
@@ -83,12 +84,14 @@ Public Class AutoCompleteTextBox
 
         AddHandler Me.GotFocus,
             Sub(s As Object, e As RoutedEventArgs)
+                _isRedirectingFocus = True
                 If _isTraversingBackwards Then
                     _isTraversingBackwards = False
                     CType(Keyboard.FocusedElement, FrameworkElement).MoveFocus(New TraversalRequest(FocusNavigationDirection.Previous))
                 Else
                     Me.PART_TextBox.Focus()
                 End If
+                _isRedirectingFocus = False
             End Sub
 
         AddHandler Me.IsEnabledChanged,
@@ -208,10 +211,18 @@ Public Class AutoCompleteTextBox
             _isSettingValueAfterUserInput = False
         End If
 
-        If Me.Equals(Keyboard.FocusedElement) Then
+        If Me.Equals(Keyboard.FocusedElement) AndAlso
+            (Keyboard.IsKeyDown(Key.Left) OrElse Keyboard.IsKeyDown(Key.Up) _
+             OrElse (Keyboard.IsKeyDown(Key.Tab) AndAlso Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))) Then
             _isTraversingBackwards = True
         Else
             Me.OnLostFocus(New RoutedEventArgs(Control.LostFocusEvent, Me))
+        End If
+    End Sub
+
+    Protected Overrides Sub OnLostFocus(e As RoutedEventArgs)
+        If Not _isRedirectingFocus Then
+            MyBase.OnLostFocus(e)
         End If
     End Sub
 
