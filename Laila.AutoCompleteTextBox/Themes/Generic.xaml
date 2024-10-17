@@ -214,6 +214,10 @@
                         <Trigger Property="IsToolTipEnabled" Value="False">
                             <Setter Property="ToolTipService.IsEnabled" Value="False" />
                         </Trigger>
+                        <Trigger Property="Validation.HasError" Value="true">
+                            <Setter Property="ToolTipService.IsEnabled" Value="True" />
+                            <Setter Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}" />
+                        </Trigger>
                         <Trigger Property="IsFocused" SourceName="PART_TextBox" Value="True">
                             <Setter Property="BorderBrush" TargetName="PART_Windows11StyleUnderscore1" Value="{DynamicResource laila_AutoComplete_FocusBrush}" />
                             <Setter Property="BorderBrush" TargetName="PART_Windows11StyleUnderscore2" Value="{DynamicResource laila_AutoComplete_FocusBrush}" />
