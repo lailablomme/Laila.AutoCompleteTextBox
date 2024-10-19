@@ -134,7 +134,7 @@
                                        PlacementTarget="{Binding ElementName=PART_Grid}" PopupAnimation="Fade" StaysOpen="False">
                                         <Border Background="White" BorderThickness="1" BorderBrush="Gray" CornerRadius="5" Padding="2">
                                             <Grid>
-                                                <ListBox x:Name="PART_ListBox" VirtualizingPanel.IsVirtualizing="True"
+                                                <ListBox x:Name="PART_ListBox" VirtualizingPanel.IsVirtualizing="False"
                                                          VirtualizingPanel.ScrollUnit="Pixel" 
                                                          ItemTemplate="{TemplateBinding ItemTemplate}"
                                                          Focusable="False" BorderThickness="0" Padding="0" 
