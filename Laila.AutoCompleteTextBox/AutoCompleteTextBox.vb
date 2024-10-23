@@ -472,7 +472,14 @@ Public Class AutoCompleteTextBox
         If Not Me.PART_ListBox.SelectedItem Is Nothing Then
             Me.SelectedItem = Me.PART_ListBox.SelectedItem
         Else
-            Me.SelectedItem = Me.PART_ListBox.Items(0)
+            If TypeOf Me.Provider Is ISuggestionProvider Then
+                tryGetItemSync(Me.Text)
+            ElseIf TypeOf Me.Provider Is ISuggestionProviderAsync Then
+                Me.WaitSyncForAsync(
+                                Async Function() As Task
+                                    Await tryGetItemAsync(Me.Text)
+                                End Function)
+            End If
         End If
         _isSettingValueAfterUserInput = False
         Me.PART_ListBox.SelectedItem = Nothing
