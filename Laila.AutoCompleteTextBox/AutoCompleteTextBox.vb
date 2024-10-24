@@ -78,7 +78,7 @@ Public Class AutoCompleteTextBox
             Sub(s As Object, e As RoutedEventArgs)
                 If Not Me.IsLoadingSuggestions Then
                     Me.PART_TextBox.Focus()
-                    displaySuggestions("")
+                    displaySuggestions("", True)
                 End If
             End Sub
 
@@ -174,7 +174,7 @@ Public Class AutoCompleteTextBox
             Select Case e.Key
                 Case Key.System
                     If Keyboard.Modifiers.HasFlag(ModifierKeys.Alt) AndAlso e.SystemKey = Key.Down Then
-                        displaySuggestions("")
+                        displaySuggestions("", True)
                     End If
                 Case Key.Enter
                     If Me.IsDirty Then
@@ -226,15 +226,15 @@ Public Class AutoCompleteTextBox
         End If
     End Sub
 
-    Private Async Function displaySuggestions(text As String) As Task
+    Private Async Function displaySuggestions(text As String, doSelectCurrent As Boolean) As Task
         If Not _cancellationTokenSource Is Nothing Then
             _cancellationTokenSource.Cancel()
         End If
         _cancellationTokenSource = New CancellationTokenSource()
-        Await displaySuggestions(text, _cancellationTokenSource.Token)
+        Await displaySuggestions(text, doSelectCurrent, _cancellationTokenSource.Token)
     End Function
 
-    Private Async Function displaySuggestions(text As String, cancellationToken As CancellationToken) As Task
+    Private Async Function displaySuggestions(text As String, doSelectCurrent As Boolean, cancellationToken As CancellationToken) As Task
         killTimer()
         Me.IsLoadingSuggestions = True
         Me.IsDropDownOpen = True
@@ -272,7 +272,7 @@ Public Class AutoCompleteTextBox
                     _cancelSelectText = Me.Text
                     BindingOperations.ClearBinding(Me.PART_TextBox, TextBox.TextProperty)
 
-                    If Not Me.SelectedValue Is Nothing AndAlso Not getIsSelectedValueInvalid() Then
+                    If doSelectCurrent AndAlso Not Me.SelectedValue Is Nothing AndAlso Not getIsSelectedValueInvalid() Then
                         Me.PART_ListBox.SelectedItem = list.Cast(Of Object).FirstOrDefault(Function(i) _
                             Me.SelectedValue.Equals(getValueFromItem(i)))
                         If Not Me.PART_ListBox.SelectedItem Is Nothing Then
@@ -431,7 +431,7 @@ Public Class AutoCompleteTextBox
             Sub()
                 Application.Current.Dispatcher.Invoke(
                     Async Function() As Task
-                        Await displaySuggestions(Me.Text)
+                        Await displaySuggestions(Me.Text, False)
                     End Function)
             End Sub, Nothing, 200, 0)
     End Sub
