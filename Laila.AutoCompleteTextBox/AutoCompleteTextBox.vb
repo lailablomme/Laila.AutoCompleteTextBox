@@ -638,7 +638,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(AllowFreeTextProperty)
         End Get
         Set(value As Boolean)
-            SetValue(AllowFreeTextProperty, value)
+            SetCurrentValue(AllowFreeTextProperty, value)
         End Set
     End Property
 
@@ -647,7 +647,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(ProviderProperty)
         End Get
         Set(value As ISuggestionProviderSyncOrAsync)
-            SetValue(ProviderProperty, value)
+            SetCurrentValue(ProviderProperty, value)
         End Set
     End Property
 
@@ -656,7 +656,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(MinCharsProperty)
         End Get
         Set(value As Integer)
-            SetValue(MinCharsProperty, value)
+            SetCurrentValue(MinCharsProperty, value)
         End Set
     End Property
 
@@ -665,7 +665,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(DisplayMemberProperty)
         End Get
         Set(value As String)
-            SetValue(DisplayMemberProperty, value)
+            SetCurrentValue(DisplayMemberProperty, value)
         End Set
     End Property
 
@@ -674,7 +674,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(InvalidValueProperty)
         End Get
         Set(value As Object)
-            SetValue(InvalidValueProperty, value)
+            SetCurrentValue(InvalidValueProperty, value)
         End Set
     End Property
 
@@ -683,7 +683,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(IsDropDownOpenProperty)
         End Get
         Set(value As Boolean)
-            SetValue(IsDropDownOpenProperty, value)
+            SetCurrentValue(IsDropDownOpenProperty, value)
         End Set
     End Property
 
@@ -692,7 +692,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(IsBalloonOpenProperty)
         End Get
         Set(value As Boolean)
-            SetValue(IsBalloonOpenProperty, value)
+            SetCurrentValue(IsBalloonOpenProperty, value)
         End Set
     End Property
 
@@ -701,7 +701,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(SelectedValuePathProperty)
         End Get
         Set(value As String)
-            SetValue(SelectedValuePathProperty, value)
+            SetCurrentValue(SelectedValuePathProperty, value)
         End Set
     End Property
 
@@ -710,7 +710,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(TextProperty)
         End Get
         Set(value As String)
-            SetValue(TextProperty, value)
+            SetCurrentValue(TextProperty, value)
         End Set
     End Property
 
@@ -719,7 +719,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(SelectedItemProperty)
         End Get
         Set(value As Object)
-            SetValue(SelectedItemProperty, value)
+            SetCurrentValue(SelectedItemProperty, value)
         End Set
     End Property
 
@@ -728,7 +728,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(SelectedValueProperty)
         End Get
         Set(value As Object)
-            SetValue(SelectedValueProperty, value)
+            SetCurrentValue(SelectedValueProperty, value)
         End Set
     End Property
 
@@ -737,7 +737,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(IsInvalidProperty)
         End Get
         Set(value As Boolean)
-            SetValue(IsInvalidProperty, value)
+            SetCurrentValue(IsInvalidProperty, value)
         End Set
     End Property
 
@@ -746,7 +746,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(IsLoadingSuggestionsProperty)
         End Get
         Set(value As Boolean)
-            SetValue(IsLoadingSuggestionsProperty, value)
+            SetCurrentValue(IsLoadingSuggestionsProperty, value)
         End Set
     End Property
 
@@ -755,7 +755,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(ErrorMessageProperty)
         End Get
         Set(value As String)
-            SetValue(ErrorMessageProperty, value)
+            SetCurrentValue(ErrorMessageProperty, value)
         End Set
     End Property
 
@@ -764,7 +764,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(IsDirtyProperty)
         End Get
         Set(value As Boolean)
-            SetValue(IsDirtyProperty, value)
+            SetCurrentValue(IsDirtyProperty, value)
         End Set
     End Property
 
@@ -773,7 +773,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(FocusableProperty)
         End Get
         Set(value As Boolean)
-            SetValue(FocusableProperty, value)
+            SetCurrentValue(FocusableProperty, value)
         End Set
     End Property
 
@@ -783,7 +783,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(ShowDropDownButtonProperty)
         End Get
         Set(value As Boolean)
-            SetValue(ShowDropDownButtonProperty, value)
+            SetCurrentValue(ShowDropDownButtonProperty, value)
         End Set
     End Property
 
@@ -792,7 +792,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(WatermarkProperty)
         End Get
         Set(value As String)
-            SetValue(WatermarkProperty, value)
+            SetCurrentValue(WatermarkProperty, value)
         End Set
     End Property
 
@@ -801,7 +801,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(MaxLengthProperty)
         End Get
         Set(value As Integer)
-            SetValue(MaxLengthProperty, value)
+            SetCurrentValue(MaxLengthProperty, value)
         End Set
     End Property
 
@@ -810,7 +810,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(IconProperty)
         End Get
         Set(value As Object)
-            SetValue(IconProperty, value)
+            SetCurrentValue(IconProperty, value)
         End Set
     End Property
 
@@ -819,7 +819,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(IsReadOnlyProperty)
         End Get
         Set(value As Boolean)
-            SetValue(IsReadOnlyProperty, value)
+            SetCurrentValue(IsReadOnlyProperty, value)
         End Set
     End Property
 
@@ -828,7 +828,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(IsTabStopProperty)
         End Get
         Set(value As Boolean)
-            SetValue(IsTabStopProperty, value)
+            SetCurrentValue(IsTabStopProperty, value)
         End Set
     End Property
 
@@ -837,7 +837,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(IsToolTipEnabledProperty)
         End Get
         Set(value As Boolean)
-            SetValue(IsToolTipEnabledProperty, value)
+            SetCurrentValue(IsToolTipEnabledProperty, value)
         End Set
     End Property
 
@@ -846,7 +846,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(ItemTemplateProperty)
         End Get
         Set(value As DataTemplate)
-            SetValue(ItemTemplateProperty, value)
+            SetCurrentValue(ItemTemplateProperty, value)
         End Set
     End Property
 
@@ -855,7 +855,7 @@ Public Class AutoCompleteTextBox
             Return GetValue(LoadingContentProperty)
         End Get
         Set(value As Object)
-            SetValue(LoadingContentProperty, value)
+            SetCurrentValue(LoadingContentProperty, value)
         End Set
     End Property
 #End Region
