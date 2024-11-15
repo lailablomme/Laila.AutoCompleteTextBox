@@ -250,7 +250,6 @@ Public Class AutoCompleteTextBox
                     Dim provider As ISuggestionProvider = Me.Provider
                     Dim func As Func(Of Task(Of IEnumerable)) =
                         Async Function() As Task(Of IEnumerable)
-                            Await Task.Delay(1000)
                             Return provider.GetSuggestions(text)
                         End Function
                     list = Await Task.Run(func)
@@ -317,6 +316,10 @@ Public Class AutoCompleteTextBox
             Try
                 _isGettingItem = True
 
+                If Not _cancellationTokenSource Is Nothing Then
+                    _cancellationTokenSource.Cancel()
+                    _cancellationTokenSource = Nothing
+                End If
                 killTimer()
 
                 If TypeOf Me.Provider Is ISuggestionProvider Then
@@ -377,6 +380,10 @@ Public Class AutoCompleteTextBox
             Try
                 _isGettingItem = True
 
+                If Not _cancellationTokenSource Is Nothing Then
+                    _cancellationTokenSource.Cancel()
+                    _cancellationTokenSource = Nothing
+                End If
                 killTimer()
 
                 If TypeOf Me.Provider Is ISuggestionProviderAsync Then
@@ -515,7 +522,11 @@ Public Class AutoCompleteTextBox
         If Me.SelectedItem Is Nothing AndAlso getIsSelectedValueInvalid() Then
             Return True
         Else
-            Return EqualityComparer(Of Object).Default.Equals(getValueFromItem(Me.SelectedItem), Me.SelectedValue)
+            ' this says string "3" equals int (3) which is what we need for backwards compatibility
+            ' and for not getting in an endless loop when the two properties mismatch types
+            Return (getValueFromItem(Me.SelectedItem) Is Nothing AndAlso Me.SelectedValue Is Nothing) _
+                OrElse (Not getValueFromItem(Me.SelectedItem) Is Nothing AndAlso Not Me.SelectedValue Is Nothing _
+                        AndAlso getValueFromItem(Me.SelectedItem) = Me.SelectedValue)
         End If
     End Function
 

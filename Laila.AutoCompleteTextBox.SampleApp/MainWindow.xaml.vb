@@ -15,6 +15,17 @@ Class MainWindow
 
     Private _file As FileData
     Private _fullPath As String
+    Private _intValue As String
+
+    Public Property IntValue As String
+        Get
+            Return _intValue
+        End Get
+        Set(value As String)
+            _intValue = value
+            RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs("IntValue"))
+        End Set
+    End Property
 
     Public Property File As FileData
         Get
@@ -46,5 +57,9 @@ Class MainWindow
 
     Private Sub DoSetFocus_Click(sender As Object, e As RoutedEventArgs) Handles DoSetFocus.Click
         actbFile.Focus()
+    End Sub
+
+    Private Sub DoSetToThree_Click(sender As Object, e As RoutedEventArgs) Handles DoSetToThree.Click
+        Me.IntValue = "3"
     End Sub
 End Class

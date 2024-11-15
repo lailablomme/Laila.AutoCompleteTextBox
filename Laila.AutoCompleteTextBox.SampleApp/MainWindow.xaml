@@ -20,10 +20,13 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.Resources>
             <local:FileSuggestionProvider x:Key="fileSuggestionProvider" />
+            <local:BasicSuggestionProvider x:Key="basicSuggestionProvider" />
         </Grid.Resources>
 
         <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" MaxWidth="150" TextWrapping="Wrap" Margin="0,0,4,20">Type a file path or type 'test' to see what happens when your suggestionprovider throws an exception:</TextBlock>
@@ -59,5 +62,27 @@
             <Button x:Name="DoSetToWindows" Margin="10,0,0,0">Set to C:\Windows</Button>
             <Button x:Name="DoSetFocus" Margin="10,0,0,0">Focus</Button>
         </StackPanel>
+
+        <TextBlock Grid.Row="5" Grid.Column="1" VerticalAlignment="Center" MaxWidth="150" TextWrapping="Wrap" Margin="0,0,4,20">This one is for testing a backwards compatibility feature:</TextBlock>
+        <l:AutoCompleteTextBox Grid.Row="5" Grid.Column="2" HorizontalAlignment="Left" x:Name="actbCompatibility"  
+                               Provider="{StaticResource ResourceKey=basicSuggestionProvider}"
+                               DisplayMember="Name" 
+                               SelectedValuePath="Id" MinChars="1"  
+                               SelectedValue="{Binding IntValue, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
+                               Watermark="(choose an item)" ShowDropDownButton="True"
+                               MinWidth="275" VerticalAlignment="Bottom" Margin="0,0,0,20">
+            <l:AutoCompleteTextBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+            </l:AutoCompleteTextBox.ItemTemplate>
+        </l:AutoCompleteTextBox>
+
+        <StackPanel Grid.Row="6" Grid.Column="2" Orientation="Horizontal">
+            <Button x:Name="DoSetToThree">Set to 3</Button>
+        </StackPanel>
+
     </Grid>
 </Window>
