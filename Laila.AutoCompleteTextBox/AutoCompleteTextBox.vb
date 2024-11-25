@@ -282,7 +282,6 @@ Public Class AutoCompleteTextBox
                     Me.IsLoadingSuggestions = False
                 Else
                     Me.IsDropDownOpen = False
-                    Me.IsLoadingSuggestions = False
                 End If
             Catch ex As Exception
                 OnLoadingException(ex)

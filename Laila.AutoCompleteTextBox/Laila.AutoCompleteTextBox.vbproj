@@ -7,7 +7,7 @@
     <UseWPF>true</UseWPF>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Laila.AutoCompleteTextBox</Title>
-    <Version>2.0.6</Version>
+    <Version>2.0.7</Version>
     <Authors>Laïla Blomme</Authors>
     <Description>A .NET6 WPF enhanced auto-complete TextBox control.</Description>
     <Copyright>Copyright © 2024 by Laïla Blomme</Copyright>
