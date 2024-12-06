@@ -278,14 +278,16 @@ Public Class AutoCompleteTextBox
                             Me.PART_ListBox.ScrollIntoView(Me.PART_ListBox.SelectedItem)
                         End If
                     End If
-
-                    Me.IsLoadingSuggestions = False
                 Else
                     Me.IsDropDownOpen = False
                 End If
             Catch ex As Exception
                 OnLoadingException(ex)
+            Finally
+                Me.IsLoadingSuggestions = False
             End Try
+        Else
+            Me.IsLoadingSuggestions = False
         End If
     End Function
 
