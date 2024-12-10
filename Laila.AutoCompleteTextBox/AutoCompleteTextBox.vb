@@ -217,6 +217,7 @@ Public Class AutoCompleteTextBox
             _isTraversingBackwards = True
         Else
             Me.OnLostFocus(New RoutedEventArgs(Control.LostFocusEvent, Me))
+            e.Handled = True
         End If
     End Sub
 
