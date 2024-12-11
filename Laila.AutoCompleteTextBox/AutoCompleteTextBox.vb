@@ -215,9 +215,6 @@ Public Class AutoCompleteTextBox
             (Keyboard.IsKeyDown(Key.Left) OrElse Keyboard.IsKeyDown(Key.Up) _
              OrElse (Keyboard.IsKeyDown(Key.Tab) AndAlso Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))) Then
             _isTraversingBackwards = True
-        Else
-            Me.OnLostFocus(New RoutedEventArgs(Control.LostFocusEvent, Me))
-            e.Handled = True
         End If
     End Sub
 
