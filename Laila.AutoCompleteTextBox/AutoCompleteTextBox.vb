@@ -234,6 +234,7 @@ Public Class AutoCompleteTextBox
 
     Private Async Function displaySuggestions(text As String, doSelectCurrent As Boolean, cancellationToken As CancellationToken) As Task
         killTimer()
+        Me.PART_ListBox.ItemsSource = Nothing
         Me.IsLoadingSuggestions = True
         Me.IsDropDownOpen = True
         Me.IsBalloonOpen = False

@@ -148,6 +148,9 @@
                                                                 <DataTrigger Binding="{Binding IsLoadingSuggestions, RelativeSource={RelativeSource Mode=TemplatedParent}}" Value="True">
                                                                     <Setter Property="ListBox.Visibility" Value="Collapsed" />
                                                                 </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Items.Count, ElementName=PART_ListBox}" Value="0">
+                                                                    <Setter Property="ListBox.Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
                                                     </ListBox.Style>
@@ -164,6 +167,9 @@
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding IsLoadingSuggestions, RelativeSource={RelativeSource Mode=TemplatedParent}}" Value="True">
                                                                     <Setter Property="ContentPresenter.Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Items.Count, ElementName=PART_ListBox}" Value="0">
+                                                                    <Setter Property="ListBox.Visibility" Value="Visible" />
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
