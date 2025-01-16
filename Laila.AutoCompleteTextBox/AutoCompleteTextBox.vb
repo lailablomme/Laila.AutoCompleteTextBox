@@ -184,7 +184,7 @@ Public Class AutoCompleteTextBox
                         ElseIf TypeOf Me.Provider Is ISuggestionProviderAsync Then
                             Me.WaitSyncForAsync(
                                 Async Function() As Task
-                                    Await tryGetItemAsync(Me.Text)
+                                    Await tryGetItemAsync(Me.SelectedValue, Me.Text)
                                 End Function)
                         End If
                         _isSettingValueAfterUserInput = False
@@ -205,7 +205,7 @@ Public Class AutoCompleteTextBox
             ElseIf TypeOf Me.Provider Is ISuggestionProviderAsync Then
                 Me.WaitSyncForAsync(
                     Async Function() As Task
-                        Await tryGetItemAsync(Me.Text)
+                        Await tryGetItemAsync(Me.SelectedValue, Me.Text)
                     End Function)
             End If
             _isSettingValueAfterUserInput = False
@@ -354,12 +354,12 @@ Public Class AutoCompleteTextBox
         End If
     End Sub
 
-    Private Async Function tryGetItemAsync(Optional callback As Action = Nothing) As Task
+    Private Async Function tryGetItemAsync(initialSelectedValue As Object, Optional callback As Action = Nothing) As Task
         _isGettingItem = True
 
         If Not getIsSelectedValueMatchesSelectedItem() Then
             If Not Me.Provider Is Nothing AndAlso Not Me.SelectedValue Is Nothing AndAlso Not getIsSelectedValueInvalid() Then
-                Await tryGetItemAsync(String.Format("GetById://{0}", Me.SelectedValue), callback)
+                Await tryGetItemAsync(initialSelectedValue, String.Format("GetById://{0}", Me.SelectedValue), callback)
                 Return
             ElseIf Not Me.SelectedItem Is Nothing Then
                 Me.SelectedItem = Nothing
@@ -373,7 +373,7 @@ Public Class AutoCompleteTextBox
         _isGettingItem = False
     End Function
 
-    Private Async Function tryGetItemAsync(filter As String, Optional callback As Action = Nothing) As Task
+    Private Async Function tryGetItemAsync(initialSelectedValue As Object, filter As String, Optional callback As Action = Nothing) As Task
         If Not String.IsNullOrWhiteSpace(filter) Then
             Dim list As IEnumerable
 
@@ -395,21 +395,26 @@ Public Class AutoCompleteTextBox
                 Me.IsDirty = False
                 Me.IsDropDownOpen = False
 
-                If Not list Is Nothing AndAlso list.GetEnumerator().MoveNext() Then
-                    If Not list(0).Equals(Me.SelectedItem) Then
-                        Me.SelectedItem = list(0)
-                    Else
-                        Me.OnSelectedItemChanged()
-                    End If
-                Else
-                    Me.SelectedValue = Me.InvalidValue
-                End If
+                Application.Current.Dispatcher.Invoke(
+                    Sub()
+                        If EqualityComparer(Of Object).Default.Equals(Me.SelectedValue, initialSelectedValue) Then
+                            If Not list Is Nothing AndAlso list.GetEnumerator().MoveNext() Then
+                                If Not list(0).Equals(Me.SelectedItem) Then
+                                    Me.SelectedItem = list(0)
+                                Else
+                                    Me.OnSelectedItemChanged()
+                                End If
+                            Else
+                                Me.SelectedValue = Me.InvalidValue
+                            End If
 
-                If Not callback Is Nothing Then
-                    callback()
-                End If
+                            If Not callback Is Nothing Then
+                                callback()
+                            End If
 
-                If _isSettingValueAfterUserInput Then Me.OnItemSelected()
+                            If _isSettingValueAfterUserInput Then Me.OnItemSelected()
+                        End If
+                    End Sub)
             Catch ex As Exception
                 OnLoadingException(ex)
             Finally
@@ -483,9 +488,9 @@ Public Class AutoCompleteTextBox
                 tryGetItemSync(Me.Text)
             ElseIf TypeOf Me.Provider Is ISuggestionProviderAsync Then
                 Me.WaitSyncForAsync(
-                                Async Function() As Task
-                                    Await tryGetItemAsync(Me.Text)
-                                End Function)
+                    Async Function() As Task
+                        Await tryGetItemAsync(Me.SelectedValue, Me.Text)
+                    End Function)
             End If
         End If
         _isSettingValueAfterUserInput = False
@@ -605,7 +610,7 @@ Public Class AutoCompleteTextBox
         act.OnSelectedItemChanged()
     End Sub
 
-    Protected Friend Overridable Async Sub OnSelectedValueChanged(oldValue As Object, newValue As Object)
+    Protected Friend Overridable Sub OnSelectedValueChanged(oldValue As Object, newValue As Object)
         Dim callback As Action =
             Sub()
                 If (EqualityComparer(Of Object).Default.Equals(oldValue, Me.InvalidValue) AndAlso newValue Is Nothing) _
@@ -622,7 +627,7 @@ Public Class AutoCompleteTextBox
         If TypeOf Me.Provider Is ISuggestionProvider Then
             tryGetItemSync(callback)
         ElseIf TypeOf Me.Provider Is ISuggestionProviderAsync Then
-            tryGetItemAsync(callback)
+            tryGetItemAsync(newValue, callback)
         End If
     End Sub
 
@@ -631,11 +636,11 @@ Public Class AutoCompleteTextBox
         act.OnSelectedValueChanged(e.OldValue, e.NewValue)
     End Sub
 
-    Friend Async Sub OnProviderChanged()
+    Friend Sub OnProviderChanged()
         If TypeOf Me.Provider Is ISuggestionProvider Then
             tryGetItemSync()
         ElseIf TypeOf Me.Provider Is ISuggestionProviderAsync Then
-            tryGetItemAsync()
+            tryGetItemAsync(Me.SelectedValue)
         End If
     End Sub
 
