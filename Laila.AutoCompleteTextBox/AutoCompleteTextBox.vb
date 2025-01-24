@@ -7,6 +7,7 @@ Imports System.Windows.Controls.Primitives
 Imports System.Windows.Data
 Imports System.Windows.Input
 Imports System.Windows.Media
+Imports System.Windows.Threading
 
 Public Class AutoCompleteTextBox
     Inherits Control
@@ -17,6 +18,7 @@ Public Class AutoCompleteTextBox
     Public Shared ReadOnly WatermarkProperty As DependencyProperty = DependencyProperty.Register("Watermark", GetType(String), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(String.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
     Public Shared ReadOnly MinCharsProperty As DependencyProperty = DependencyProperty.Register("MinChars", GetType(Integer), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(3, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
     Public Shared ReadOnly MaxLengthProperty As DependencyProperty = DependencyProperty.Register("MaxLength", GetType(Integer), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(0, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
+    Public Shared ReadOnly DelayProperty As DependencyProperty = DependencyProperty.Register("Delay", GetType(Integer), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(500, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
     Public Shared ReadOnly DisplayMemberProperty As DependencyProperty = DependencyProperty.Register("DisplayMember", GetType(String), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(String.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
     Public Shared ReadOnly IconProperty As DependencyProperty = DependencyProperty.Register("Icon", GetType(Object), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(Nothing, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
     Public Shared ReadOnly InvalidValueProperty As DependencyProperty = DependencyProperty.Register("InvalidValue", GetType(Object), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(Integer.MinValue, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
@@ -44,7 +46,7 @@ Public Class AutoCompleteTextBox
     Protected _isGettingItem As Boolean
     Protected _isRedirectingFocus As Boolean
     Private _isTraversingBackwards As Boolean
-    Private _timer As Timer
+    Private _timer As DispatcherTimer
     Private _cancelValue As Object
     Private _cancelText As String
     Private _cancelSelectText As String
@@ -55,6 +57,7 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Public Overrides Sub OnApplyTemplate()
+        Debug.WriteLine("Public Sub OnApplyTemplate()")
         MyBase.OnApplyTemplate()
 
         Me.PART_TextBox = Me.Template.FindName("PART_TextBox", Me)
@@ -70,12 +73,14 @@ Public Class AutoCompleteTextBox
 
         AddHandler Me.PART_Popup.Closed,
             Sub(s As Object, e As EventArgs)
+                Debug.WriteLine("Me.PART_Popup.Closed")
                 Me.PART_TextBox.SetBinding(TextBox.TextProperty, New Binding("Text") With {.Source = Me, .UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged})
                 Me.IsDropDownOpen = False
             End Sub
 
         AddHandler Me.PART_DropDownButton.Checked,
             Sub(s As Object, e As RoutedEventArgs)
+                Debug.WriteLine("Me.PART_DropDownButton.Checked")
                 If Not Me.IsLoadingSuggestions Then
                     Me.PART_TextBox.Focus()
                     displaySuggestions("", True)
@@ -84,6 +89,7 @@ Public Class AutoCompleteTextBox
 
         AddHandler Me.GotFocus,
             Sub(s As Object, e As RoutedEventArgs)
+                Debug.WriteLine("Me.GotFocus")
                 _isRedirectingFocus = True
                 If _isTraversingBackwards Then
                     _isTraversingBackwards = False
@@ -96,6 +102,7 @@ Public Class AutoCompleteTextBox
 
         AddHandler Me.IsEnabledChanged,
             Sub(s As Object, e As DependencyPropertyChangedEventArgs)
+                Debug.WriteLine("Me.IsEnabledChanged")
                 If Not Me.IsEnabled AndAlso Me.IsDropDownOpen Then
                     Me.IsDropDownOpen = False
                 End If
@@ -103,6 +110,7 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Protected Overridable Sub TextBox_TextChanged(s As Object, e As TextChangedEventArgs)
+        Debug.WriteLine("Protected Sub TextBox_TextChanged")
         If Me.PART_TextBox.Text Is Nothing OrElse Me.PART_TextBox.Text.Length = 0 Then
             Me.IsDropDownOpen = False
             killTimer()
@@ -120,6 +128,7 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Protected Overridable Sub TextBox_KeyDown(s As Object, e As KeyEventArgs)
+        Debug.WriteLine("Protected Sub TextBox_KeyDown")
         If Me.IsDropDownOpen AndAlso Not Me.IsLoadingSuggestions Then
             Select Case e.Key
                 Case Key.Down
@@ -198,6 +207,7 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Protected Overridable Sub TextBox_LostFocus(s As Object, e As RoutedEventArgs)
+        Debug.WriteLine("Protected Sub TextBox_LostFocus")
         If Me.IsDirty Then
             _isSettingValueAfterUserInput = True
             If TypeOf Me.Provider Is ISuggestionProvider Then
@@ -219,12 +229,14 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Protected Overrides Sub OnLostFocus(e As RoutedEventArgs)
+        Debug.WriteLine("Protected Sub OnLostFocus")
         If Not _isRedirectingFocus Then
             MyBase.OnLostFocus(e)
         End If
     End Sub
 
     Private Async Function displaySuggestions(text As String, doSelectCurrent As Boolean) As Task
+        Debug.WriteLine("Private Function displaySuggestions 1")
         If Not _cancellationTokenSource Is Nothing Then
             _cancellationTokenSource.Cancel()
         End If
@@ -233,6 +245,7 @@ Public Class AutoCompleteTextBox
     End Function
 
     Private Async Function displaySuggestions(text As String, doSelectCurrent As Boolean, cancellationToken As CancellationToken) As Task
+        Debug.WriteLine("Private Function displaySuggestions 2")
         killTimer()
         Me.PART_ListBox.ItemsSource = Nothing
         Me.IsLoadingSuggestions = True
@@ -291,6 +304,7 @@ Public Class AutoCompleteTextBox
     End Function
 
     Private Sub tryGetItemSync(Optional callback As Action = Nothing)
+        Debug.WriteLine("Private Sub tryGetItemSync 1")
         _isGettingItem = True
 
         If Not getIsSelectedValueMatchesSelectedItem() Then
@@ -310,6 +324,7 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Private Sub tryGetItemSync(filter As String, Optional callback As Action = Nothing)
+        Debug.WriteLine("Private Sub tryGetItemSync 2")
         If Not String.IsNullOrWhiteSpace(filter) Then
             Dim list As IEnumerable
 
@@ -355,6 +370,7 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Private Async Function tryGetItemAsync(initialSelectedValue As Object, Optional callback As Action = Nothing) As Task
+        Debug.WriteLine("Private Function tryGetItemAsync 1")
         _isGettingItem = True
 
         If Not getIsSelectedValueMatchesSelectedItem() Then
@@ -374,6 +390,7 @@ Public Class AutoCompleteTextBox
     End Function
 
     Private Async Function tryGetItemAsync(initialSelectedValue As Object, filter As String, Optional callback As Action = Nothing) As Task
+        Debug.WriteLine("Private Function tryGetItemAsync")
         If Not String.IsNullOrWhiteSpace(filter) Then
             Dim list As IEnumerable
 
@@ -424,31 +441,35 @@ Public Class AutoCompleteTextBox
     End Function
 
     Protected Overridable Sub OnLoadingException(ex As Exception)
+        Debug.WriteLine("Protected Sub OnLoadingException")
         Me.IsDropDownOpen = False
         Me.ErrorMessage = ex.Message & If(Not ex.InnerException Is Nothing, vbCrLf & ex.InnerException.Message, "")
         Me.IsBalloonOpen = True
     End Sub
 
     Private Sub killTimer()
+        Debug.WriteLine("Private Sub killTimer()")
         If Not _timer Is Nothing Then
-            _timer.Change(Timeout.Infinite, Timeout.Infinite)
-            _timer.Dispose()
-            _timer = Nothing
+            _timer.Stop()
         End If
     End Sub
 
     Private Sub resetTimer()
+        Debug.WriteLine("Private Sub resetTimer()")
         killTimer()
-        _timer = New Timer(
-            Sub()
-                Application.Current.Dispatcher.Invoke(
-                    Async Function() As Task
-                        Await displaySuggestions(Me.Text, False)
-                    End Function)
-            End Sub, Nothing, 200, 0)
+        If _timer Is Nothing Then
+            _timer = New DispatcherTimer()
+            _timer.Interval = TimeSpan.FromMilliseconds(Me.Delay)
+            AddHandler _timer.Tick,
+                Async Sub(s As Object, e As EventArgs)
+                    Await displaySuggestions(Me.Text, False)
+                End Sub
+        End If
+        _timer.Start()
     End Sub
 
     Protected Overridable Sub Cancel()
+        Debug.WriteLine("Protected Sub Cancel()")
         If Me.IsDropDownOpen Then
             Me.IsDropDownOpen = False
             _isSettingTextInternally = True
@@ -466,18 +487,20 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Protected Overridable Sub OnCancelled()
-
+        Debug.WriteLine("Protected Sub OnCancelled()")
     End Sub
 
     Protected Overridable Sub OnItemSelected()
-
+        Debug.WriteLine("Protected Sub OnItemSelected()")
     End Sub
 
     Private Sub cancelSelectFromList()
+        Debug.WriteLine("Private Sub cancelSelectFromList()")
         Me.Cancel()
     End Sub
 
     Private Sub commitSelectionFromList()
+        Debug.WriteLine("Private Sub commitSelectionFromList()")
         Me.IsDropDownOpen = False
         Me.IsDirty = False
         _isSettingValueAfterUserInput = True
@@ -501,6 +524,7 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Private Sub selectionChanged()
+        Debug.WriteLine("Private Sub selectionChanged()")
         _isSettingTextInternally = True
         Me.PART_TextBox.Text = getTextFromItem(Me.PART_ListBox.SelectedItem)
         _isSettingTextInternally = False
@@ -510,6 +534,7 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Private Sub listBox_PreviewMouseDown(ByVal sender As Object, ByVal e As MouseButtonEventArgs)
+        Debug.WriteLine("Private Sub listBox_PreviewMouseDown")
         Dim result As HitTestResult = VisualTreeHelper.HitTest(Me.PART_ListBox, e.GetPosition(Me.PART_ListBox))
         If Not result Is Nothing Then
             Dim listBoxItem As ListBoxItem = UIHelper.GetParentOfType(Of ListBoxItem)(result.VisualHit, Me.PART_ListBox)
@@ -524,6 +549,7 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Private Function getIsSelectedValueMatchesSelectedItem() As Boolean
+        Debug.WriteLine("Private Function getIsSelectedValueMatchesSelectedItem()")
         If Me.SelectedItem Is Nothing AndAlso getIsSelectedValueInvalid() Then
             Return True
         Else
@@ -536,10 +562,12 @@ Public Class AutoCompleteTextBox
     End Function
 
     Private Function getIsSelectedValueInvalid() As Boolean
+        Debug.WriteLine("Private Function getIsSelectedValueInvalid()")
         Return EqualityComparer(Of Object).Default.Equals(Me.SelectedValue, Me.InvalidValue)
     End Function
 
     Private Function getTextFromItem(item As Object) As String
+        Debug.WriteLine("Private Function getTextFromItem")
         If item Is Nothing Then
             Return String.Empty
         ElseIf String.IsNullOrEmpty(Me.DisplayMember) Then
@@ -555,6 +583,7 @@ Public Class AutoCompleteTextBox
     End Function
 
     Private Function getValueFromItem(item As Object) As Object
+        Debug.WriteLine("Private Function getValueFromItem")
         If Not item Is Nothing AndAlso Not String.IsNullOrWhiteSpace(Me.SelectedValuePath) Then
             Dim p As PropertyInfo = item.GetType().GetProperty(Me.SelectedValuePath)
             If Not p Is Nothing Then
@@ -568,6 +597,7 @@ Public Class AutoCompleteTextBox
     End Function
 
     Private Sub WaitSyncForAsync(func As Func(Of Task))
+        Debug.WriteLine("Private Sub WaitSyncForAsync")
         Dim result As Boolean
         Application.Current.Dispatcher.Invoke(
             Async Function() As Task
@@ -582,6 +612,7 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Protected Friend Overridable Sub OnSelectedItemChanged()
+        Debug.WriteLine("Protected Friend Sub OnSelectedItemChanged()")
         ' hide tooltip?
         If Me.SelectedItem Is Nothing AndAlso Not Me.ToolTip Is Nothing AndAlso TypeOf (Me.ToolTip) Is ToolTip Then
             CType(Me.ToolTip, ToolTip).IsOpen = False
@@ -606,11 +637,13 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Shared Sub OnSelectedItemChanged(ByVal d As DependencyObject, ByVal e As DependencyPropertyChangedEventArgs)
+        Debug.WriteLine("Shared Sub OnSelectedItemChanged")
         Dim act As AutoCompleteTextBox = TryCast(d, AutoCompleteTextBox)
         act.OnSelectedItemChanged()
     End Sub
 
     Protected Friend Overridable Sub OnSelectedValueChanged(oldValue As Object, newValue As Object)
+        Debug.WriteLine("Protected Friend Sub OnSelectedValueChanged")
         Dim callback As Action =
             Sub()
                 If (EqualityComparer(Of Object).Default.Equals(oldValue, Me.InvalidValue) AndAlso newValue Is Nothing) _
@@ -632,11 +665,13 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Shared Sub OnSelectedValueChanged(ByVal d As DependencyObject, ByVal e As DependencyPropertyChangedEventArgs)
+        Debug.WriteLine("Shared Sub OnSelectedValueChanged")
         Dim act As AutoCompleteTextBox = TryCast(d, AutoCompleteTextBox)
         act.OnSelectedValueChanged(e.OldValue, e.NewValue)
     End Sub
 
     Friend Sub OnProviderChanged()
+        Debug.WriteLine("Friend Sub OnProviderChanged()")
         If TypeOf Me.Provider Is ISuggestionProvider Then
             tryGetItemSync()
         ElseIf TypeOf Me.Provider Is ISuggestionProviderAsync Then
@@ -645,6 +680,7 @@ Public Class AutoCompleteTextBox
     End Sub
 
     Shared Sub OnProviderChanged(ByVal d As DependencyObject, ByVal e As DependencyPropertyChangedEventArgs)
+        Debug.WriteLine("Shared Sub OnProviderChanged")
         Dim act As AutoCompleteTextBox = TryCast(d, AutoCompleteTextBox)
         act.OnProviderChanged()
     End Sub
@@ -673,6 +709,15 @@ Public Class AutoCompleteTextBox
         End Get
         Set(value As Integer)
             SetCurrentValue(MinCharsProperty, value)
+        End Set
+    End Property
+
+    Public Property Delay As Integer
+        Get
+            Return GetValue(DelayProperty)
+        End Get
+        Set(value As Integer)
+            SetCurrentValue(DelayProperty, value)
         End Set
     End Property
 
