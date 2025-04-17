@@ -34,7 +34,6 @@
     <Style TargetType="{x:Type local:AutoCompleteTextBox}">
         <Setter Property="Background" Value="White" />
         <Setter Property="Foreground" Value="Black" />
-        <Setter Property="IsTabStop" Value="True" />
         <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
         <Setter Property="ToolTipService.ShowDuration" Value="2147483647" />
         <Setter Property="LoadingContent">

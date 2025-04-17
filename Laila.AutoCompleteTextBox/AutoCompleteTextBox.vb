@@ -36,6 +36,7 @@ Public Class AutoCompleteTextBox
     Public Shared ReadOnly IsLoadingSuggestionsProperty As DependencyProperty = DependencyProperty.Register("IsLoadingSuggestions", GetType(Boolean), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(False, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
     Public Shared ReadOnly ErrorMessageProperty As DependencyProperty = DependencyProperty.Register("ErrorMessage", GetType(String), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(Nothing, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
     Public Shared ReadOnly IsDirtyProperty As DependencyProperty = DependencyProperty.Register("IsDirty", GetType(Boolean), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(False, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
+    Public Shared Shadows ReadOnly IsTabStopProperty As DependencyProperty = DependencyProperty.Register("IsTabStop", GetType(Boolean), GetType(AutoCompleteTextBox), New FrameworkPropertyMetadata(True, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault))
 
     Protected PART_TextBox As TextBox
     Protected PART_ListBox As ListBox
@@ -44,8 +45,6 @@ Public Class AutoCompleteTextBox
     Protected _isSettingValueAfterUserInput As Boolean
     Protected _isSettingTextInternally As Boolean
     Protected _isGettingItem As Boolean
-    Protected _isRedirectingFocus As Boolean
-    Private _isTraversingBackwards As Boolean
     Private _timer As DispatcherTimer
     Private _cancelValue As Object
     Private _cancelText As String
@@ -59,6 +58,8 @@ Public Class AutoCompleteTextBox
     Public Overrides Sub OnApplyTemplate()
         Debug.WriteLine("Public Sub OnApplyTemplate()")
         MyBase.OnApplyTemplate()
+
+        MyBase.IsTabStop = False
 
         Me.PART_TextBox = Me.Template.FindName("PART_TextBox", Me)
         Me.PART_ListBox = Me.Template.FindName("PART_ListBox", Me)
@@ -85,19 +86,6 @@ Public Class AutoCompleteTextBox
                     Me.PART_TextBox.Focus()
                     displaySuggestions("", True)
                 End If
-            End Sub
-
-        AddHandler Me.GotFocus,
-            Sub(s As Object, e As RoutedEventArgs)
-                Debug.WriteLine("Me.GotFocus")
-                _isRedirectingFocus = True
-                If _isTraversingBackwards Then
-                    _isTraversingBackwards = False
-                    CType(Keyboard.FocusedElement, FrameworkElement).MoveFocus(New TraversalRequest(FocusNavigationDirection.Previous))
-                Else
-                    Me.PART_TextBox.Focus()
-                End If
-                _isRedirectingFocus = False
             End Sub
 
         AddHandler Me.IsEnabledChanged,
@@ -219,19 +207,6 @@ Public Class AutoCompleteTextBox
                     End Function)
             End If
             _isSettingValueAfterUserInput = False
-        End If
-
-        If Me.Equals(Keyboard.FocusedElement) AndAlso
-            (Keyboard.IsKeyDown(Key.Left) OrElse Keyboard.IsKeyDown(Key.Up) _
-             OrElse (Keyboard.IsKeyDown(Key.Tab) AndAlso Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))) Then
-            _isTraversingBackwards = True
-        End If
-    End Sub
-
-    Protected Overrides Sub OnLostFocus(e As RoutedEventArgs)
-        Debug.WriteLine("Protected Sub OnLostFocus")
-        If Not _isRedirectingFocus Then
-            MyBase.OnLostFocus(e)
         End If
     End Sub
 

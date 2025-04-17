@@ -70,7 +70,7 @@
                                SelectedValuePath="Id" MinChars="1"  
                                SelectedValue="{Binding IntValue, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
                                Watermark="(choose an item)" ShowDropDownButton="True"
-                               MinWidth="275" VerticalAlignment="Bottom" Margin="0,0,0,20">
+                               MinWidth="275" VerticalAlignment="Bottom" Margin="0,0,0,20" IsTabStop="False">
             <l:AutoCompleteTextBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
