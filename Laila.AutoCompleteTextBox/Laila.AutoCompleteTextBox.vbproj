@@ -11,7 +11,7 @@
     <Authors>Laïla Blomme</Authors>
     <Description>Introducing a feature-rich, MVVM-friendly Auto-Complete TextBox for .NET 6 WPF.</Description>
     <Copyright>Copyright © 2025 by Laïla Blomme</Copyright>
-    <PackageProjectUrl>https://sourceforge.net/p/laila-autocompletetextbox/code/ci/master/tree/</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/lailablomme/Laila.AutoCompleteTextBox</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
