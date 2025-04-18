@@ -328,7 +328,10 @@ Public Class AutoCompleteTextBox
                         Me.OnSelectedItemChanged()
                     End If
                 Else
-                    Me.SelectedValue = Me.InvalidValue
+                    Application.Current.Dispatcher.InvokeAsync(
+                        Sub()
+                            Me.SelectedValue = Me.InvalidValue
+                        End Sub)
                 End If
 
                 If Not callback Is Nothing Then
