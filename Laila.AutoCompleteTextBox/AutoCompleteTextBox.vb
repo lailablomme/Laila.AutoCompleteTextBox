@@ -95,6 +95,11 @@ Public Class AutoCompleteTextBox
                     Me.IsDropDownOpen = False
                 End If
             End Sub
+
+        AddHandler Me.GotFocus,
+            Sub(s As Object, e As EventArgs)
+                Me.PART_TextBox.Focus()
+            End Sub
     End Sub
 
     Protected Overridable Sub TextBox_TextChanged(s As Object, e As TextChangedEventArgs)
