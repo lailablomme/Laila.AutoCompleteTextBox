@@ -8,7 +8,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Laila.AutoCompleteTextBox</Title>
     <Version>2.0.20</Version>
-    <Authors>Laïla Blomme</Authors>
+    <Authors>Laïla_Blomme</Authors>
     <Description>Introducing a feature-rich, MVVM-friendly Auto-Complete TextBox for .NET 6 WPF.</Description>
     <Copyright>Copyright © 2025 by Laïla Blomme</Copyright>
     <PackageProjectUrl>https://github.com/lailablomme/Laila.AutoCompleteTextBox</PackageProjectUrl>
