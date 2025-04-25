@@ -98,8 +98,14 @@ Public Class AutoCompleteTextBox
 
         AddHandler Me.GotFocus,
             Sub(s As Object, e As EventArgs)
-                Me.PART_TextBox.Focus()
+                Me.FocusChild()
             End Sub
+    End Sub
+
+    Public Overridable Sub FocusChild()
+        If Not Me.PART_TextBox Is Nothing Then
+            Me.PART_TextBox.Focus()
+        End If
     End Sub
 
     Protected Overridable Sub TextBox_TextChanged(s As Object, e As TextChangedEventArgs)
